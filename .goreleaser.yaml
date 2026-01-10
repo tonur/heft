@@ -22,6 +22,10 @@ builds:
 archives:
   - formats:
       - tar.gz
+    # Use tar.gz for Unix-like platforms and zip for Windows.
+    format_overrides:
+      - goos: windows
+        formats: [zip]
     # Make the OS and Arch compatible with the results of `uname`.
     name_template: >-
       {{ .ProjectName }}-{{ .Version }}-{{ tolower .Os }}-
