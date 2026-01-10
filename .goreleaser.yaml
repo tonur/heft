@@ -1,0 +1,68 @@
+
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: heft
+    main: ./cmd/heft
+    binary: heft
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - formats:
+      - tar.gz
+    # Make the OS and Arch compatible with the results of `uname`.
+    name_template: >-
+      {{ .ProjectName }}-{{ .Version }}-{{ tolower .Os }}-
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+
+changelog:
+  sort: asc
+
+nfpms:
+  - id: heft
+    maintainer: 'tonur'
+    description: 'Tool to view container images needed by Helm, for use in SBOM or air-gapped environments'
+    homepage: 'https://github.com/tonur/heft'
+    license: 'MIT'
+    formats:
+      - deb
+      - rpm
+      - archlinux
+    file_name_template: >-
+      {{ .ProjectName }}-{{ .Version }}-{{ tolower .Os }}-
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+
+signs:
+  - cmd: gpg
+    args:
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
+    artifacts: all
+
+release:
+  github:
+    owner: tonur
+    name: heft
