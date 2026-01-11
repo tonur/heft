@@ -89,8 +89,16 @@ Higher-confidence images are preferred and de-duplicated per repository:
 
 - Go toolchain (to build the binary):
 
-  ```bash
-  go build ./cmd/heft
-  ```
+```bash
+go build ./cmd/heft
+```
 
 - Helm 3 on `PATH` for rendered-manifest detection and end-to-end tests.
+
+## Implementation notes
+
+`heft` downloads remote charts when needed, runs Helm to render manifests, and then combines several detection strategies to find container images. It de-duplicates results and lets you filter them by confidence level using `--min-confidence`.
+
+## Code generation and tooling
+
+This project has been substantially generated and maintained with the help of OpenCode, including refactors, test additions, and documentation updates.
