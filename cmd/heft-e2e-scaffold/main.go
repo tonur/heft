@@ -523,8 +523,16 @@ func normalizeImageName(name string) string {
 		return name
 	}
 
-	// Extract first path segment.
-	first := name
+	// Strip tag or digest when determining the first segment for registry detection.
+	baseForHost := name
+	if at := strings.Index(baseForHost, "@"); at != -1 {
+		baseForHost = baseForHost[:at]
+	}
+	if colon := strings.Index(baseForHost, ":"); colon != -1 {
+		baseForHost = baseForHost[:colon]
+	}
+
+	first := baseForHost
 	if slash := strings.Index(first, "/"); slash != -1 {
 		first = first[:slash]
 	}
@@ -537,7 +545,7 @@ func normalizeImageName(name string) string {
 	// No explicit registry host; assume Docker Hub.
 
 	// Has a slash: Docker Hub user/org image.
-	if strings.Contains(name, "/") {
+	if strings.Contains(baseForHost, "/") {
 		base := name
 		if !strings.Contains(base, ":") && !strings.Contains(base, "@") {
 			base = base + ":latest"
