@@ -169,3 +169,19 @@ func TestScanWithBasicChartIntegration(t *testing.T) {
 		t.Fatalf("expected high-confidence rendered-manifest, got %+v", img)
 	}
 }
+
+func TestScanMinConfidenceAndEmptyChart(t *testing.T) {
+	dir := t.TempDir()
+
+	// Empty directory: no static/regex images.
+	_, err := Scan(Options{ChartPath: dir, MinConfidence: ConfidenceLow, HelmBin: "false"})
+	if err == nil {
+		t.Fatalf("expected error for low confidence with no images, got nil")
+	}
+
+	// High min-confidence on same empty directory should also error.
+	_, err = Scan(Options{ChartPath: dir, MinConfidence: ConfidenceHigh, HelmBin: "false"})
+	if err == nil {
+		t.Fatalf("expected error for high confidence with no images, got nil")
+	}
+}

@@ -10,8 +10,13 @@ import (
 	"github.com/tonur/heft/internal/scan"
 )
 
-// Execute is the entry point for the heft CLI.
-func Execute() {
+// scanFunc is the function used by the CLI to run a scan.
+// It is a variable to allow tests to inject a fake implementation.
+var scanFunc = scan.Scan
+
+// newRootCommand constructs the root heft command with the scan subcommand
+// wired to call scanFunc.
+func newRootCommand() *cobra.Command {
 	heftCommand := &cobra.Command{
 		Use:   "heft",
 		Short: "Scan Helm charts for container images",
@@ -74,7 +79,7 @@ func Execute() {
 				Verbose:             verbose,
 			}
 
-			result, err := scan.Scan(options)
+			result, err := scanFunc(options)
 			if err != nil {
 				return err
 			}
@@ -97,9 +102,24 @@ func Execute() {
 	scanCommand.Flags().StringArrayP("values", "f", nil, "values file (repeatable)")
 
 	heftCommand.AddCommand(scanCommand)
+	return heftCommand
+}
 
-	if err := heftCommand.Execute(); err != nil {
+// exitFunc is used by Execute to terminate the process. It is a
+// variable so tests can stub it and observe exit behavior.
+var exitFunc = os.Exit
+
+// executeCommand runs the provided command and returns any error.
+// It is a variable so tests can stub it.
+var executeCommand = func(cmd *cobra.Command) error {
+	return cmd.Execute()
+}
+
+// Execute is the entry point for the heft CLI.
+func Execute() {
+	cmd := newRootCommand()
+	if err := executeCommand(cmd); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
-		os.Exit(1)
+		exitFunc(1)
 	}
 }

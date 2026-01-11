@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/spf13/cobra"
+
+	"github.com/tonur/heft/internal/scan"
 )
 
 // buildTestRoot constructs a Cobra root/scan command wired similarly to
@@ -110,7 +112,52 @@ func TestRootHelpIncludesScan(t *testing.T) {
 
 	out := buf.String()
 	if !strings.Contains(out, "scan        Scan a Helm chart for container images") &&
-		!strings.Contains(out, "scan	Scan a Helm chart for container images") {
+		!strings.Contains(out, "scan\tScan a Helm chart for container images") {
 		t.Fatalf("expected help output to mention scan subcommand, got: %s", out)
+	}
+}
+
+// TestNewRootCommandWiresScanOptions verifies that the real CLI wiring
+// passes the expected options to scanFunc.
+func TestNewRootCommandWiresScanOptions(t *testing.T) {
+	old := scanFunc
+	defer func() { scanFunc = old }()
+
+	var gotOptions scan.Options
+	scanFunc = func(opts scan.Options) (*scan.ScanResult, error) {
+		gotOptions = opts
+		return &scan.ScanResult{}, nil
+	}
+
+	cmd := newRootCommand()
+	cmd.SetArgs([]string{
+		"scan", "my-chart",
+		"--min-confidence=high",
+		"--no-helm-deps",
+		"--include-optional-deps",
+		"-v",
+		"--set", "foo=bar",
+		"--set-string", "baz=qux",
+		"-f", "values.yaml",
+	})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() returned error: %v", err)
+	}
+
+	if gotOptions.ChartPath != "my-chart" {
+		t.Fatalf("expected ChartPath=my-chart, got %q", gotOptions.ChartPath)
+	}
+	if gotOptions.MinConfidence != scan.ConfidenceHigh {
+		t.Fatalf("expected MinConfidence=high, got %q", gotOptions.MinConfidence)
+	}
+	if !gotOptions.DisableHelmDeps {
+		t.Fatalf("expected DisableHelmDeps=true")
+	}
+	if !gotOptions.IncludeOptionalDeps {
+		t.Fatalf("expected IncludeOptionalDeps=true")
+	}
+	if !gotOptions.Verbose {
+		t.Fatalf("expected Verbose=true")
 	}
 }
