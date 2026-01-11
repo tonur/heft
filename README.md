@@ -2,6 +2,20 @@
 
 `heft` is a small CLI tool that scans Helm charts and reports the container images they use. It prefers high-confidence information from rendered Kubernetes manifests (via `helm template`), and falls back to static YAML and regex-based detection when necessary.
 
+## Installation
+
+### Homebrew (recommended)
+
+```bash
+brew install tonur/heft/heft
+```
+
+### From source
+
+```bash
+go build ./cmd/heft
+```
+
 ## Usage
 
 ```bash
