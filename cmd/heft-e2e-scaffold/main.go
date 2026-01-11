@@ -257,7 +257,7 @@ func scaffoldChart(chartDir, metadataPath string, chart *artifactHubChart, chart
 			continue
 		}
 		expected = append(expected, expectedImage{
-			Image:      img.Name,
+			Image:      normalizeImageName(img.Name),
 			Confidence: img.Confidence,
 			Source:     img.Source,
 		})
@@ -267,7 +267,7 @@ func scaffoldChart(chartDir, metadataPath string, chart *artifactHubChart, chart
 		// Fall back to including all images so the test isn't trivially empty.
 		for _, img := range images {
 			expected = append(expected, expectedImage{
-				Image:      img.Name,
+				Image:      normalizeImageName(img.Name),
 				Confidence: img.Confidence,
 				Source:     img.Source,
 			})
@@ -515,4 +515,40 @@ func firstNonEmpty(values ...string) string {
 		}
 	}
 	return ""
+}
+
+func normalizeImageName(name string) string {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return name
+	}
+
+	// Extract first path segment.
+	first := name
+	if slash := strings.Index(first, "/"); slash != -1 {
+		first = first[:slash]
+	}
+
+	// If the first segment has a dot, treat it as an explicit registry host.
+	if strings.Contains(first, ".") {
+		return name
+	}
+
+	// No explicit registry host; assume Docker Hub.
+
+	// Has a slash: Docker Hub user/org image.
+	if strings.Contains(name, "/") {
+		base := name
+		if !strings.Contains(base, ":") && !strings.Contains(base, "@") {
+			base = base + ":latest"
+		}
+		return "docker.io/" + base
+	}
+
+	// No slash: Docker Hub library.
+	base := name
+	if !strings.Contains(base, ":") && !strings.Contains(base, "@") {
+		base = base + ":latest"
+	}
+	return "docker.io/library/" + base
 }
