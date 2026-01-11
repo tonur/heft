@@ -8,7 +8,7 @@ import (
 )
 
 // TestRunVersionFlag ensures that the run helper handles the
-// --version flag and returns a zero exit code without invoking exitFunc.
+// --version flag and returns a zero exit code without invoking exitFunction.
 func TestRunVersionFlag(t *testing.T) {
 	code := run([]string{"--version"})
 	if code != 0 {
@@ -19,11 +19,11 @@ func TestRunVersionFlag(t *testing.T) {
 // TestMainVersionFlag ensures that the --version flag is handled by
 // the main entrypoint and prints a non-empty version string.
 func TestMainVersionFlag(t *testing.T) {
-	// Run `go run` on the heft command from the repo root.
-	cmd := exec.Command("go", "run", "./cmd/heft", "--version")
-	cmd.Dir = "../.."
+	// Run `go run` on the heft command from the repository root.
+	command := exec.Command("go", "run", "./cmd/heft", "--version")
+	command.Dir = "../.."
 
-	out, err := cmd.CombinedOutput()
+	out, err := command.CombinedOutput()
 	if err != nil {
 		t.Fatalf("go run ./cmd/heft --version failed: %v\noutput: %s", err, string(out))
 	}
@@ -33,27 +33,27 @@ func TestMainVersionFlag(t *testing.T) {
 	}
 }
 
-// TestMainUsesExitFunc verifies that main calls exitFunc with
+// TestMainUsesExitFunction verifies that main calls exitFunction with
 // the code returned by run.
-func TestMainUsesExitFunc(t *testing.T) {
-	oldExit := exitFunc
-	defer func() { exitFunc = oldExit }()
+func TestMainUsesExitFunction(t *testing.T) {
+	oldExit := exitFunction
+	defer func() { exitFunction = oldExit }()
 
 	called := false
 	var gotCode int
-	exitFunc = func(code int) {
+	exitFunction = func(code int) {
 		called = true
 		gotCode = code
 	}
 
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
+	arguments := os.Args
+	defer func() { os.Args = arguments }()
 	os.Args = []string{"heft", "--version"}
 
 	main()
 
 	if !called {
-		t.Fatalf("expected exitFunc to be called")
+		t.Fatalf("expected exitFunction to be called")
 	}
 	if gotCode != 0 {
 		t.Fatalf("expected exit code 0, got %d", gotCode)

@@ -64,7 +64,7 @@ func runChartCommands(t *testing.T, binPath string, chart *chartFixture, command
 		}
 
 		if len(commandFixture.Arguments) == 0 {
-			t.Fatalf("command fixture %s has no args", path)
+			t.Fatalf("command fixture %s has no arguments", path)
 		}
 		if len(commandFixture.ExpectedImages) == 0 {
 			t.Fatalf("command fixture %s has no expectedImages", path)
@@ -97,8 +97,8 @@ func runChartCommands(t *testing.T, binPath string, chart *chartFixture, command
 					continue
 				}
 				found := false
-				for _, img := range parsed.Images {
-					if img.Name == expected.Image && img.Confidence == expected.Confidence && img.Source == expected.Source {
+				for _, image := range parsed.Images {
+					if image.Name == expected.Image && image.Confidence == expected.Confidence && image.Source == expected.Source {
 						found = true
 						break
 					}

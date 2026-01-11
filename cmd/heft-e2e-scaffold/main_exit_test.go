@@ -5,15 +5,15 @@ import (
 	"testing"
 )
 
-// TestMainUsesExitFunc verifies that main calls exitFunc(1)
+// TestMainUsesExitFunction verifies that main calls exitFunction(1)
 // when run returns an error.
-func TestMainUsesExitFunc(t *testing.T) {
-	oldExit := exitFunc
-	defer func() { exitFunc = oldExit }()
+func TestMainUsesExitFunction(t *testing.T) {
+	oldExit := exitFunction
+	defer func() { exitFunction = oldExit }()
 
 	called := false
 	var gotCode int
-	exitFunc = func(code int) {
+	exitFunction = func(code int) {
 		called = true
 		gotCode = code
 	}
@@ -35,7 +35,7 @@ func TestMainUsesExitFunc(t *testing.T) {
 	main()
 
 	if !called {
-		t.Fatalf("expected exitFunc to be called")
+		t.Fatalf("expected exitFunction to be called")
 	}
 	if gotCode != 1 {
 		t.Fatalf("expected exit code 1, got %d", gotCode)

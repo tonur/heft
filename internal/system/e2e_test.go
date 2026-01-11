@@ -18,33 +18,33 @@ func buildHeftBinary(t *testing.T) string {
 		t.Skip("helm not available in PATH; skipping e2e test")
 	}
 
-	tmpDir := t.TempDir()
-	binPath := filepath.Join(tmpDir, "heft")
-	build := exec.Command("go", "build", "-o", binPath, "./cmd/heft")
+	temporaryDirectory := t.TempDir()
+	binaryPath := filepath.Join(temporaryDirectory, "heft")
+	build := exec.Command("go", "build", "-o", binaryPath, "./cmd/heft")
 	build.Env = os.Environ()
 	build.Dir = filepath.Join("..", "..")
 	if out, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("failed to build heft: %v\n%s", err, out)
 	}
 
-	return binPath
+	return binaryPath
 }
 
 func repositoryRootDirectory(t *testing.T) string {
 	t.Helper()
 
-	repoRoot, err := filepath.Abs(filepath.Join("..", ".."))
+	repositoryRoot, err := filepath.Abs(filepath.Join("..", ".."))
 	if err != nil {
-		t.Fatalf("failed to resolve repo root: %v", err)
+		t.Fatalf("failed to resolve repository root: %v", err)
 	}
-	return repoRoot
+	return repositoryRoot
 }
 
-func runHeftScan(t *testing.T, binPath string, args ...string) []byte {
+func runHeftScan(t *testing.T, binPath string, arguments ...string) []byte {
 	t.Helper()
 
 	temporaryDir := t.TempDir()
-	command := exec.Command(binPath, args...)
+	command := exec.Command(binPath, arguments...)
 	command.Env = os.Environ()
 	command.Dir = temporaryDir
 

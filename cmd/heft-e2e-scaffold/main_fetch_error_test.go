@@ -10,14 +10,14 @@ import (
 // TestFetchArtifactHubChartsHTTPError ensures non-200 responses are surfaced
 // as errors with some context.
 func TestFetchArtifactHubChartsHTTPError(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTeapot)
 		_, _ = w.Write([]byte("nope"))
 	}))
-	defer ts.Close()
+	defer testServer.Close()
 
 	oldBase := artifactHubBaseURL
-	artifactHubBaseURL = ts.URL
+	artifactHubBaseURL = testServer.URL
 	defer func() { artifactHubBaseURL = oldBase }()
 
 	_, err := fetchArtifactHubCharts(1, 0, "stars")
@@ -34,13 +34,13 @@ func TestResolveFromHelmIndexErrorCases(t *testing.T) {
 	}
 
 	// Non-200 status from index.yaml.
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		_, _ = w.Write([]byte("missing"))
 	}))
-	defer ts.Close()
+	defer testServer.Close()
 
-	if _, err := resolveFromHelmIndex(ts.URL, "chart", ""); err == nil {
+	if _, err := resolveFromHelmIndex(testServer.URL, "chart", ""); err == nil {
 		t.Fatalf("expected error for non-200 index response, got nil")
 	}
 

@@ -36,9 +36,9 @@ func TestEnsureHeftBinaryUsesPath(t *testing.T) {
 		if err := os.WriteFile(src, []byte("package main\nimport \"fmt\"\nfunc main(){fmt.Println(\"path-heft\")}"), 0o644); err != nil {
 			t.Fatalf("WriteFile: %v", err)
 		}
-		cmd := exec.Command("go", "build", "-o", fake, src)
-		cmd.Env = os.Environ()
-		if out, err := cmd.CombinedOutput(); err != nil {
+		command := exec.Command("go", "build", "-o", fake, src)
+		command.Env = os.Environ()
+		if out, err := command.CombinedOutput(); err != nil {
 			t.Fatalf("build fake heft: %v\n%s", err, string(out))
 		}
 	} else {

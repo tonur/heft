@@ -43,9 +43,9 @@ func main() {
 		bin += ".exe"
 	}
 
-	cmd := exec.Command("go", "build", "-o", bin, src)
-	cmd.Env = os.Environ()
-	if out, err := cmd.CombinedOutput(); err != nil {
+	command := exec.Command("go", "build", "-o", bin, src)
+	command.Env = os.Environ()
+	if out, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("build fake helm: %v\n%s", err, string(out))
 	}
 
@@ -58,10 +58,10 @@ func TestScanIncludesOptionalDependenciesWithFakeHelm(t *testing.T) {
 	// assert on specific images, only that it does not error when
 	// dependency build succeeds and the charts directory exists.
 
-	repo := t.TempDir()
+	repository := t.TempDir()
 
 	// Create a minimal chart layout with a charts/ subdirectory.
-	chartRoot := filepath.Join(repo, "parent")
+	chartRoot := filepath.Join(repository, "parent")
 	if err := os.MkdirAll(filepath.Join(chartRoot, "charts", "child"), 0o755); err != nil {
 		t.Fatalf("MkdirAll chart layout: %v", err)
 	}
@@ -80,7 +80,7 @@ func TestScanIncludesOptionalDependenciesWithFakeHelm(t *testing.T) {
 	fakeDir := t.TempDir()
 	helmBin := fakeHelmBinary(t, fakeDir)
 
-	res, err := Scan(Options{
+	result, err := Scan(Options{
 		ChartPath:           chartRoot,
 		HelmBin:             helmBin,
 		IncludeOptionalDeps: true,
@@ -88,7 +88,7 @@ func TestScanIncludesOptionalDependenciesWithFakeHelm(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Scan with IncludeOptionalDeps returned error: %v", err)
 	}
-	if len(res.Images) == 0 {
+	if len(result.Images) == 0 {
 		t.Fatalf("expected some images when scanning chart with values.yaml, got 0")
 	}
 }

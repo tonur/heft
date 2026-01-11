@@ -21,33 +21,33 @@ func TestEnsureHeftBinaryBuildsWhenNotOnPath(t *testing.T) {
 		t.Skip("go tool not available in PATH; skipping build-path test")
 	}
 
-	repo := t.TempDir()
+	repository := t.TempDir()
 	// Minimal go.mod so that ./cmd/heft resolves.
-	if err := os.WriteFile(filepath.Join(repo, "go.mod"), []byte("module example.com/heft-test"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(repository, "go.mod"), []byte("module example.com/heft-test"), 0o644); err != nil {
 		t.Fatalf("WriteFile go.mod: %v", err)
 	}
 	// Create a minimal cmd/heft main package so the build succeeds quickly.
-	heftDir := filepath.Join(repo, "cmd", "heft")
-	if err := os.MkdirAll(heftDir, 0o755); err != nil {
+	heftDirectory := filepath.Join(repository, "cmd", "heft")
+	if err := os.MkdirAll(heftDirectory, 0o755); err != nil {
 		t.Fatalf("MkdirAll cmd/heft: %v", err)
 	}
 	mainSrc := []byte("package main\nfunc main() {}\n")
-	if err := os.WriteFile(filepath.Join(heftDir, "main.go"), mainSrc, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(heftDirectory, "main.go"), mainSrc, 0o644); err != nil {
 		t.Fatalf("WriteFile cmd/heft/main.go: %v", err)
 	}
 
 	// Create a wrapper for the go tool that delegates to the real go
 	// but records that it was invoked. This keeps the behavior close
 	// to the real path while remaining hermetic.
-	wrapperDir := t.TempDir()
+	wrapperDirectory := t.TempDir()
 	realGo, err := exec.LookPath("go")
 	if err != nil {
 		t.Fatalf("LookPath go: %v", err)
 	}
 
-	wrapperPath := filepath.Join(wrapperDir, "go")
-	wrapperSrc := "#!/bin/sh\n" +
-		"echo wrapper-go-invoked >> '" + filepath.Join(wrapperDir, "log") + "'\n" +
+	wrapperPath := filepath.Join(wrapperDirectory, "go")
+	wrapperSource := "#!/bin/sh\n" +
+		"echo wrapper-go-invoked >> '" + filepath.Join(wrapperDirectory, "log") + "'\n" +
 		"exec '" + realGo + "' \"$@\"\n"
 	if runtime.GOOS == "windows" {
 		// On Windows, fall back to calling the real go directly without
@@ -55,7 +55,7 @@ func TestEnsureHeftBinaryBuildsWhenNotOnPath(t *testing.T) {
 		// simplicity, just use the real go on PATH.
 		wrapperPath = realGo
 	} else {
-		if err := os.WriteFile(wrapperPath, []byte(wrapperSrc), 0o755); err != nil {
+		if err := os.WriteFile(wrapperPath, []byte(wrapperSource), 0o755); err != nil {
 			t.Fatalf("WriteFile go wrapper: %v", err)
 		}
 	}
@@ -65,16 +65,16 @@ func TestEnsureHeftBinaryBuildsWhenNotOnPath(t *testing.T) {
 	t.Setenv("HEFT_BINARY", "")
 	// PATH will contain only our wrapper directory so LookPath("heft") fails
 	// and the code falls back to building.
-	t.Setenv("PATH", wrapperDir)
+	t.Setenv("PATH", wrapperDirectory)
 
-	bin, err := ensureHeftBinary(repo)
+	binary, err := ensureHeftBinary(repository)
 	if err != nil {
 		t.Fatalf("ensureHeftBinary returned error: %v", err)
 	}
-	if bin == "" {
+	if binary == "" {
 		t.Fatalf("ensureHeftBinary returned empty path")
 	}
-	if _, err := os.Stat(bin); err != nil {
-		t.Fatalf("expected built heft binary at %s: %v", bin, err)
+	if _, err := os.Stat(binary); err != nil {
+		t.Fatalf("expected built heft binary at %s: %v", binary, err)
 	}
 }

@@ -42,14 +42,14 @@ type commandFixture struct {
 
 func selectExpectedImages(images []scanImage) []expectedImage {
 	var highConfidence []expectedImage
-	for _, img := range images {
-		if img.Confidence != "high" {
+	for _, image := range images {
+		if image.Confidence != "high" {
 			continue
 		}
 		highConfidence = append(highConfidence, expectedImage{
-			Image:      normalizeImageName(img.Name),
-			Confidence: img.Confidence,
-			Source:     img.Source,
+			Image:      normalizeImageName(image.Name),
+			Confidence: image.Confidence,
+			Source:     image.Source,
 		})
 	}
 
@@ -58,11 +58,11 @@ func selectExpectedImages(images []scanImage) []expectedImage {
 	}
 
 	var all []expectedImage
-	for _, img := range images {
+	for _, image := range images {
 		all = append(all, expectedImage{
-			Image:      normalizeImageName(img.Name),
-			Confidence: img.Confidence,
-			Source:     img.Source,
+			Image:      normalizeImageName(image.Name),
+			Confidence: image.Confidence,
+			Source:     image.Source,
 		})
 	}
 
@@ -108,15 +108,15 @@ func scaffoldChart(chartDir, metadataPath string, chart *artifactHubChart, chart
 	return nil
 }
 
-// writeFileFunc is a variable to allow tests to stub file writes.
-var writeFileFunc = os.WriteFile
+// writeFileFunction is a variable to allow tests to stub file writes.
+var writeFileFunction = os.WriteFile
 
-func writeChartMetadata(metadataPath string, md *chartMetadata) error {
-	mdBytes, err := yaml.Marshal(md)
+func writeChartMetadata(metadataPath string, metadata *chartMetadata) error {
+	metadataBytes, err := yaml.Marshal(metadata)
 	if err != nil {
 		return fmt.Errorf("marshal metadata: %w", err)
 	}
-	if err := writeFileFunc(metadataPath, mdBytes, 0o644); err != nil {
+	if err := writeFileFunction(metadataPath, metadataBytes, 0o644); err != nil {
 		return fmt.Errorf("write metadata: %w", err)
 	}
 	return nil
@@ -182,24 +182,24 @@ func updateChartMetadataAndCheckDrift(chartDir, metadataPath string, chart *arti
 // runHeftScanForImages executes the heft binary against the given
 // chart URL and parses its YAML output into scanImage values.
 func runHeftScanForImages(heftPath, chartURL, minConfidence string) ([]scanImage, error) {
-	return runHeftScanForImagesFunc(heftPath, chartURL, minConfidence)
+	return runHeftScanForImagesFunction(heftPath, chartURL, minConfidence)
 }
 
-// runHeftScanForImagesFunc is a function variable to allow tests to
+// runHeftScanForImagesFunction is a function variable to allow tests to
 // stub out the external heft invocation.
-var runHeftScanForImagesFunc = func(heftPath, chartURL, minConfidence string) ([]scanImage, error) {
+var runHeftScanForImagesFunction = func(heftPath, chartURL, minConfidence string) ([]scanImage, error) {
 	tmpDir, err := os.MkdirTemp("", "heft-e2e-scan-")
 	if err != nil {
 		return nil, err
 	}
 	defer os.RemoveAll(tmpDir)
 
-	args := []string{"scan", chartURL, "--min-confidence=" + minConfidence}
-	cmd := exec.Command(heftPath, args...)
-	cmd.Dir = tmpDir
-	cmd.Env = os.Environ()
+	arguments := []string{"scan", chartURL, "--min-confidence=" + minConfidence}
+	command := exec.Command(heftPath, arguments...)
+	command.Dir = tmpDir
+	command.Env = os.Environ()
 
-	out, err := cmd.CombinedOutput()
+	out, err := command.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("heft scan failed: %v\noutput:\n%s", err, string(out))
 	}
@@ -229,7 +229,7 @@ func resolveChartURL(chart artifactHubChart) (string, error) {
 		return resolveFromHelmIndex(repositoryURL, firstNonEmpty(chart.NormalizedName, chart.Name), chart.Version)
 	default:
 		if strings.HasPrefix(repositoryURL, "oci://") || strings.Contains(repositoryURL, "ghcr.io/") || strings.Contains(repositoryURL, "registry") {
-			URL, err := ociURLFromRepo(repositoryURL, firstNonEmpty(chart.NormalizedName, chart.Name))
+			URL, err := ociURLFromRepository(repositoryURL, firstNonEmpty(chart.NormalizedName, chart.Name))
 			if err != nil {
 				return "", err
 			}

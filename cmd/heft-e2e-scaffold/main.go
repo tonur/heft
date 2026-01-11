@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var exitFunc = os.Exit
+var exitFunction = os.Exit
 
 func main() {
 	maxCharts := flag.Int("max-charts", 10, "maximum number of new charts to scaffold")
@@ -17,24 +17,24 @@ func main() {
 	update := flag.Bool("update", false, "update metadata for existing charts and warn on drift")
 	flag.Parse()
 
-	if err := runFunc(*maxCharts, *minConfidence, *artifactHubSort, *update); err != nil {
+	if err := runFunction(*maxCharts, *minConfidence, *artifactHubSort, *update); err != nil {
 		fmt.Fprintf(os.Stderr, "heft-e2e-scaffold error: %v\n", err)
-		exitFunc(1)
+		exitFunction(1)
 	}
 }
 
-// runFunc is a function variable to allow tests to stub run.
-var runFunc = run
+// runFunction is a function variable to allow tests to stub run.
+var runFunction = run
 
 // run orchestrates fetching charts from Artifact Hub and scaffolding
 // test fixtures for each chart.
 func run(maxCharts int, minConfidence, sort string, update bool) error {
-	repositoryRoot, err := repositoryRootFunc()
+	repositoryRoot, err := repositoryRootFunction()
 	if err != nil {
 		return err
 	}
 
-	heftPath, err := ensureHeftBinaryFunc(repositoryRoot)
+	heftPath, err := ensureHeftBinaryFunction(repositoryRoot)
 	if err != nil {
 		return fmt.Errorf("ensure heft binary: %w", err)
 	}
@@ -51,7 +51,7 @@ func run(maxCharts int, minConfidence, sort string, update bool) error {
 	pageLimit := 60
 
 	for newCharts < maxCharts || update {
-		charts, err := fetchArtifactHubChartsFunc(pageLimit, offset, sort)
+		charts, err := fetchArtifactHubChartsFunction(pageLimit, offset, sort)
 		if err != nil {
 			return fmt.Errorf("fetch Artifact Hub charts: %w", err)
 		}

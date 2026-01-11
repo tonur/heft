@@ -7,14 +7,14 @@ import (
 )
 
 func TestFetchArtifactHubChartsHandlesNon200Status(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadGateway)
 		_, _ = w.Write([]byte("bad"))
 	}))
-	defer ts.Close()
+	defer testServer.Close()
 
 	oldBase := artifactHubBaseURL
-	artifactHubBaseURL = ts.URL
+	artifactHubBaseURL = testServer.URL
 	defer func() { artifactHubBaseURL = oldBase }()
 
 	if _, err := fetchArtifactHubCharts(10, 0, "stars"); err == nil {
@@ -23,14 +23,14 @@ func TestFetchArtifactHubChartsHandlesNon200Status(t *testing.T) {
 }
 
 func TestFetchArtifactHubChartsHandlesInvalidJSON(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte("not-json"))
 	}))
-	defer ts.Close()
+	defer testServer.Close()
 
 	oldBase := artifactHubBaseURL
-	artifactHubBaseURL = ts.URL
+	artifactHubBaseURL = testServer.URL
 	defer func() { artifactHubBaseURL = oldBase }()
 
 	if _, err := fetchArtifactHubCharts(10, 0, "stars"); err == nil {

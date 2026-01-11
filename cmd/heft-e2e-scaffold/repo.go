@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 )
 
-// repositoryRootFunc is a variable to allow tests to stub repository
+// repositoryRootFunction is a variable to allow tests to stub repository
 // discovery logic.
-var repositoryRootFunc = repositoryRoot
+var repositoryRootFunction = repositoryRoot
 
 // repositoryRoot walks up from the current working directory until it
 // finds a go.mod file, treating that directory as the repository root.
@@ -32,9 +32,9 @@ func repositoryRoot() (string, error) {
 	}
 }
 
-// ensureHeftBinaryFunc is a variable to allow tests to stub heft binary
+// ensureHeftBinaryFunction is a variable to allow tests to stub heft binary
 // resolution.
-var ensureHeftBinaryFunc = ensureHeftBinary
+var ensureHeftBinaryFunction = ensureHeftBinary
 
 // ensureHeftBinary locates or builds a heft binary to use for
 // scaffolding. It prefers HEFT_BINARY, then an existing heft on PATH,
@@ -54,10 +54,10 @@ func ensureHeftBinary(repoRoot string) (string, error) {
 	}
 	binPath := filepath.Join(tmpDir, "heft")
 
-	cmd := exec.Command("go", "build", "-o", binPath, "./cmd/heft")
-	cmd.Dir = repoRoot
-	cmd.Env = os.Environ()
-	out, err := cmd.CombinedOutput()
+	command := exec.Command("go", "build", "-o", binPath, "./cmd/heft")
+	command.Dir = repoRoot
+	command.Env = os.Environ()
+	out, err := command.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("building heft failed: %v\n%s", err, string(out))
 	}

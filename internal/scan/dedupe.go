@@ -5,11 +5,11 @@ import (
 	"strings"
 )
 
-func splitRepoAndTag(name string) (repo string, hasTag bool) {
+func splitRepoAndTag(name string) (repository string, hasTag bool) {
 	// Very simple Docker-ish split: prefer digest (@), else last colon as tag
 	// separator, but only if there is at least one '/' before it.
-	if i := strings.Index(name, "@"); i != -1 {
-		return name[:i], true
+	if index := strings.Index(name, "@"); index != -1 {
+		return name[:index], true
 	}
 	lastColon := strings.LastIndex(name, ":")
 	slash := strings.Index(name, "/")

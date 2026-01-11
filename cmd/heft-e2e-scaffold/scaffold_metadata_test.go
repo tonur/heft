@@ -12,8 +12,8 @@ func TestWriteChartMetadataWritesYAML(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "chart_metadata.yaml")
 
-	md := &chartMetadata{Name: "chart", URL: "https://example.com", Version: "1.0.0", Source: "artifacthub"}
-	if err := writeChartMetadata(path, md); err != nil {
+	metadata := &chartMetadata{Name: "chart", URL: "https://example.com", Version: "1.0.0", Source: "artifacthub"}
+	if err := writeChartMetadata(path, metadata); err != nil {
 		t.Fatalf("writeChartMetadata returned error: %v", err)
 	}
 
@@ -26,8 +26,8 @@ func TestWriteChartMetadataWritesYAML(t *testing.T) {
 	if err := yaml.Unmarshal(data, &decoded); err != nil {
 		t.Fatalf("failed to unmarshal metadata YAML: %v", err)
 	}
-	if decoded.Name != md.Name || decoded.URL != md.URL || decoded.Version != md.Version || decoded.Source != md.Source {
-		t.Fatalf("decoded metadata %+v does not match original %+v", decoded, *md)
+	if decoded.Name != metadata.Name || decoded.URL != metadata.URL || decoded.Version != metadata.Version || decoded.Source != metadata.Source {
+		t.Fatalf("decoded metadata %+v does not match original %+v", decoded, *metadata)
 	}
 }
 
@@ -98,10 +98,10 @@ func TestUpdateChartMetadataAndCheckDriftIdenticalFixtureNoWarning(t *testing.T)
 		t.Fatalf("write existing fixture: %v", err)
 	}
 
-	oldRunHeft := runHeftScanForImagesFunc
-	defer func() { runHeftScanForImagesFunc = oldRunHeft }()
+	oldRunHeft := runHeftScanForImagesFunction
+	defer func() { runHeftScanForImagesFunction = oldRunHeft }()
 
-	runHeftScanForImagesFunc = func(heftPath, chartURL, minConfidence string) ([]scanImage, error) {
+	runHeftScanForImagesFunction = func(heftPath, chartURL, minConfidence string) ([]scanImage, error) {
 		return []scanImage{{Name: "nginx:1.0", Confidence: "high", Source: "static"}}, nil
 	}
 
@@ -129,10 +129,10 @@ func TestUpdateChartMetadataAndCheckDriftMalformedExistingFixture(t *testing.T) 
 		t.Fatalf("write malformed fixture: %v", err)
 	}
 
-	oldRunHeft := runHeftScanForImagesFunc
-	defer func() { runHeftScanForImagesFunc = oldRunHeft }()
+	oldRunHeft := runHeftScanForImagesFunction
+	defer func() { runHeftScanForImagesFunction = oldRunHeft }()
 
-	runHeftScanForImagesFunc = func(heftPath, chartURL, minConfidence string) ([]scanImage, error) {
+	runHeftScanForImagesFunction = func(heftPath, chartURL, minConfidence string) ([]scanImage, error) {
 		return nil, nil
 	}
 

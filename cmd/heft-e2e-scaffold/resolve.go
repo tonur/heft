@@ -174,8 +174,8 @@ func joinHelmURL(repositoryURL, chartURL string) (string, error) {
 	return repository.ResolveReference(chart).String(), nil
 }
 
-// ociURLFromRepo constructs an OCI URL from a repository URL and chart name.
-func ociURLFromRepo(repoURL, chartName string) (string, error) {
+// ociURLFromRepository constructs an OCI URL from a repository URL and chart name.
+func ociURLFromRepository(repoURL, chartName string) (string, error) {
 	if chartName == "" {
 		return "", fmt.Errorf("chart name is empty")
 	}
@@ -185,7 +185,7 @@ func ociURLFromRepo(repoURL, chartName string) (string, error) {
 	trimmed = strings.TrimPrefix(trimmed, "oci://")
 	trimmed = strings.TrimRight(trimmed, "/")
 	if trimmed == "" {
-		return "", fmt.Errorf("invalid repo URL %q", repoURL)
+		return "", fmt.Errorf("invalid repository URL %q", repoURL)
 	}
 
 	return "oci://" + trimmed + "/" + chartName, nil

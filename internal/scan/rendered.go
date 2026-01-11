@@ -95,7 +95,7 @@ func detectRendered(options Options) ([]ImageFinding, error) {
 		return stdout.Bytes(), nil
 	}
 
-	out, err := template()
+	output, err := template()
 	if err != nil {
 		// If auto dependency builds are disabled, just return the error.
 		if options.DisableHelmDeps {
@@ -104,12 +104,12 @@ func detectRendered(options Options) ([]ImageFinding, error) {
 		// If this looks like a missing dependency error on a local chart dir,
 		// try a best-effort "helm dependency build" once and retry template.
 		if !isRemoteChartRef(options.ChartPath) && (strings.Contains(err.Error(), "helm dependency build") || strings.Contains(err.Error(), "missing in charts/ directory")) {
-			depCmd := exec.Command(helm, "dependency", "build", options.ChartPath)
-			var depStderr bytes.Buffer
-			depCmd.Stderr = &depStderr
-			if depErr := depCmd.Run(); depErr == nil {
-				if out2, tplErr := template(); tplErr == nil {
-					out = out2
+			dependencyCommand := exec.Command(helm, "dependency", "build", options.ChartPath)
+			var dependencyStderr bytes.Buffer
+			dependencyCommand.Stderr = &dependencyStderr
+			if dependencyErr := dependencyCommand.Run(); dependencyErr == nil {
+				if templateOutput, tplErr := template(); tplErr == nil {
+					output = templateOutput
 					err = nil
 				}
 			}
@@ -119,7 +119,7 @@ func detectRendered(options Options) ([]ImageFinding, error) {
 		}
 	}
 
-	documents := bytes.Split(out, []byte("---"))
+	documents := bytes.Split(output, []byte("---"))
 	var images []ImageFinding
 
 	for _, document := range documents {

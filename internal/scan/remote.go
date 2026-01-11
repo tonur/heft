@@ -45,11 +45,11 @@ func fetchAndExtractChart(ref string) (string, error) {
 	}
 
 	if strings.HasPrefix(ref, "oci://") {
-		cmd := helmPullCommand(ref, tmpDir)
-		cmd.Env = os.Environ()
+		command := helmPullCommand(ref, tmpDir)
+		command.Env = os.Environ()
 		var stderr bytes.Buffer
-		cmd.Stderr = &stderr
-		if err := cmd.Run(); err != nil {
+		command.Stderr = &stderr
+		if err := command.Run(); err != nil {
 			return "", fmt.Errorf("helm pull failed: %w: %s", err, stderr.String())
 		}
 

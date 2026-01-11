@@ -24,9 +24,9 @@ func TestScaffoldChartErrorsOnEmptyScan(t *testing.T) {
 		t.Fatalf("write fake heft source: %v", err)
 	}
 
-	buildCmd := exec.Command("go", "build", "-o", fakeHeft, fakeSrc)
-	buildCmd.Env = os.Environ()
-	if out, err := buildCmd.CombinedOutput(); err != nil {
+	buildCommand := exec.Command("go", "build", "-o", fakeHeft, fakeSrc)
+	buildCommand.Env = os.Environ()
+	if out, err := buildCommand.CombinedOutput(); err != nil {
 		t.Fatalf("build fake heft: %v\n%s", err, string(out))
 	}
 	if runtime.GOOS == "windows" {

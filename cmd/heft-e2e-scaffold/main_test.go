@@ -45,21 +45,21 @@ func TestFirstNonEmpty(t *testing.T) {
 
 func TestOCIURLFromRepo(t *testing.T) {
 	cases := []struct {
-		name    string
-		repo    string
-		chart   string
-		want    string
-		wantErr bool
+		name       string
+		repository string
+		chart      string
+		want       string
+		wantErr    bool
 	}{
 		{"emptyChart", "https://ghcr.io/org/charts", "", "", true},
 		{"httpsRepo", "https://ghcr.io/org/charts", "mychart", "oci://ghcr.io/org/charts/mychart", false},
 		{"ociRepo", "oci://ghcr.io/org/charts", "mychart", "oci://ghcr.io/org/charts/mychart", false},
 	}
 
-	for _, tt := range cases {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := ociURLFromRepo(tt.repo, tt.chart)
-			if tt.wantErr {
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got, err := ociURLFromRepository(testCase.repository, testCase.chart)
+			if testCase.wantErr {
 				if err == nil {
 					t.Fatalf("expected error, got nil and %q", got)
 				}
@@ -68,8 +68,8 @@ func TestOCIURLFromRepo(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
-			if got != tt.want {
-				t.Fatalf("ociURLFromRepo(%q,%q) = %q, want %q", tt.repo, tt.chart, got, tt.want)
+			if got != testCase.want {
+				t.Fatalf("ociURLFromRepo(%q,%q) = %q, want %q", testCase.repository, testCase.chart, got, testCase.want)
 			}
 		})
 	}
@@ -86,20 +86,20 @@ func TestResolveFromHelmIndexStablePreferred(t *testing.T) {
         - "mychart-1.1.0-beta.1.tgz"
 `
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/x-yaml")
 		_, _ = w.Write([]byte(indexYAML))
 	}))
-	defer ts.Close()
+	defer testServer.Close()
 
-	repoURL := ts.URL
+	repositoryURL := testServer.URL
 
-	got, err := resolveFromHelmIndex(repoURL, "mychart", "")
+	url, err := resolveFromHelmIndex(repositoryURL, "mychart", "")
 	if err != nil {
 		t.Fatalf("resolveFromHelmIndex unexpected error: %v", err)
 	}
-	if got != ts.URL+"/mychart-1.0.0.tgz" {
-		t.Fatalf("resolveFromHelmIndex = %q, want %q", got, ts.URL+"/mychart-1.0.0.tgz")
+	if url != testServer.URL+"/mychart-1.0.0.tgz" {
+		t.Fatalf("resolveFromHelmIndex = %q, want %q", url, testServer.URL+"/mychart-1.0.0.tgz")
 	}
 }
 
@@ -114,20 +114,20 @@ func TestResolveFromHelmIndexExactVersion(t *testing.T) {
         - "mychart-1.1.0-beta.1.tgz"
 `
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/x-yaml")
 		_, _ = w.Write([]byte(indexYAML))
 	}))
-	defer ts.Close()
+	defer testServer.Close()
 
-	repoURL := ts.URL
+	repoURL := testServer.URL
 
 	got, err := resolveFromHelmIndex(repoURL, "mychart", "1.1.0-beta.1")
 	if err != nil {
 		t.Fatalf("resolveFromHelmIndex unexpected error: %v", err)
 	}
-	if got != ts.URL+"/mychart-1.1.0-beta.1.tgz" {
-		t.Fatalf("resolveFromHelmIndex = %q, want %q", got, ts.URL+"/mychart-1.1.0-beta.1.tgz")
+	if got != testServer.URL+"/mychart-1.1.0-beta.1.tgz" {
+		t.Fatalf("resolveFromHelmIndex = %q, want %q", got, testServer.URL+"/mychart-1.1.0-beta.1.tgz")
 	}
 }
 
@@ -142,20 +142,20 @@ func TestResolveFromHelmIndexPreReleaseOnly(t *testing.T) {
         - "mychart-1.0.0-beta.2.tgz"
 `
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/x-yaml")
 		_, _ = w.Write([]byte(indexYAML))
 	}))
-	defer ts.Close()
+	defer testServer.Close()
 
-	repoURL := ts.URL
+	repoURL := testServer.URL
 
 	got, err := resolveFromHelmIndex(repoURL, "mychart", "")
 	if err != nil {
 		t.Fatalf("resolveFromHelmIndex unexpected error: %v", err)
 	}
-	if got != ts.URL+"/mychart-1.0.0-beta.1.tgz" {
-		t.Fatalf("resolveFromHelmIndex = %q, want %q", got, ts.URL+"/mychart-1.0.0-beta.1.tgz")
+	if got != testServer.URL+"/mychart-1.0.0-beta.1.tgz" {
+		t.Fatalf("resolveFromHelmIndex = %q, want %q", got, testServer.URL+"/mychart-1.0.0-beta.1.tgz")
 	}
 }
 

@@ -13,14 +13,14 @@ import (
 func TestWriteChartMetadataAndReadBack(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "chart_metadata.yaml")
-	md := &chartMetadata{
+	metadata := &chartMetadata{
 		Name:    "demo",
 		URL:     "https://example.com/demo-1.0.0.tgz",
 		Version: "1.0.0",
 		Source:  "artifacthub",
 	}
 
-	if err := writeChartMetadata(path, md); err != nil {
+	if err := writeChartMetadata(path, metadata); err != nil {
 		t.Fatalf("writeChartMetadata error: %v", err)
 	}
 
@@ -34,8 +34,8 @@ func TestWriteChartMetadataAndReadBack(t *testing.T) {
 		t.Fatalf("Unmarshal: %v", err)
 	}
 
-	if !reflect.DeepEqual(*md, decoded) {
-		t.Fatalf("metadata mismatch: got %+v, want %+v", decoded, *md)
+	if !reflect.DeepEqual(*metadata, decoded) {
+		t.Fatalf("metadata mismatch: got %+v, want %+v", decoded, *metadata)
 	}
 }
 
@@ -86,8 +86,8 @@ func TestWriteCommandFixtureAndReadBack(t *testing.T) {
 }
 
 func TestUpdateChartMetadataAndCheckDrift_NoExistingFixture(t *testing.T) {
-	repo := t.TempDir()
-	metadataPath := filepath.Join(repo, "chart_metadata.yaml")
+	repository := t.TempDir()
+	metadataPath := filepath.Join(repository, "chart_metadata.yaml")
 
 	chart := &artifactHubChart{
 		Name:           "demo",
@@ -96,12 +96,12 @@ func TestUpdateChartMetadataAndCheckDrift_NoExistingFixture(t *testing.T) {
 	}
 
 	// Create commands directory but intentionally omit the high fixture.
-	if err := os.MkdirAll(filepath.Join(repo, "commands"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(repository, "commands"), 0o755); err != nil {
 		t.Fatalf("MkdirAll: %v", err)
 	}
 
 	// First call: should attempt to update metadata even if scan fails.
-	_ = updateChartMetadataAndCheckDrift(repo, metadataPath, chart, "https://example.com/demo-1.2.3.tgz", "/nonexistent/heft")
+	_ = updateChartMetadataAndCheckDrift(repository, metadataPath, chart, "https://example.com/demo-1.2.3.tgz", "/nonexistent/heft")
 
 	data, err := os.ReadFile(metadataPath)
 	if err != nil {

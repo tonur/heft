@@ -36,13 +36,13 @@ func TestDownloadFileNetworkError(t *testing.T) {
 // TestFetchAndExtractChartHTTPError ensures non-200 responses from the
 // server are propagated from downloadFile through fetchAndExtractChart.
 func TestFetchAndExtractChartHTTPError(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadGateway)
 		_, _ = w.Write([]byte("bad"))
 	}))
-	defer ts.Close()
+	defer testServer.Close()
 
-	if _, err := fetchAndExtractChart(ts.URL); err == nil {
+	if _, err := fetchAndExtractChart(testServer.URL); err == nil {
 		t.Fatalf("expected error for HTTP 502 response, got nil")
 	}
 }

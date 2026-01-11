@@ -13,29 +13,29 @@ import (
 // buildTestRoot constructs a Cobra root/scan command wired similarly to
 // Execute, but replaces the scan RunE with a stub so we can assert flag
 // parsing without invoking the real scanner.
-func buildTestRoot(runScan func(cmd *cobra.Command, args []string) error) *cobra.Command {
-	rootCmd := &cobra.Command{
+func buildTestRoot(runScan func(command *cobra.Command, arguments []string) error) *cobra.Command {
+	rootCommand := &cobra.Command{
 		Use:   "heft",
 		Short: "Scan Helm charts for container images",
 	}
 
-	scanCmd := &cobra.Command{
+	scanCommand := &cobra.Command{
 		Use:   "scan <chart-ref>",
 		Short: "Scan a Helm chart for container images",
 		Args:  cobra.ExactArgs(1),
 		RunE:  runScan,
 	}
 
-	scanCmd.Flags().String("min-confidence", "low", "minimum image confidence to include (low|medium|high)")
-	scanCmd.Flags().Bool("no-helm-deps", false, "disable automatic 'helm dependency build'")
-	scanCmd.Flags().Bool("include-optional-deps", false, "include optional chart dependencies when scanning")
-	scanCmd.Flags().BoolP("verbose", "v", false, "enable verbose logging")
-	scanCmd.Flags().StringArray("set", nil, "set Helm values (key=val, repeatable)")
-	scanCmd.Flags().StringArray("set-string", nil, "set Helm string values (key=val, repeatable)")
-	scanCmd.Flags().StringArrayP("values", "f", nil, "values file (repeatable)")
+	scanCommand.Flags().String("min-confidence", "low", "minimum image confidence to include (low|medium|high)")
+	scanCommand.Flags().Bool("no-helm-deps", false, "disable automatic 'helm dependency build'")
+	scanCommand.Flags().Bool("include-optional-deps", false, "include optional chart dependencies when scanning")
+	scanCommand.Flags().BoolP("verbose", "v", false, "enable verbose logging")
+	scanCommand.Flags().StringArray("set", nil, "set Helm values (key=val, repeatable)")
+	scanCommand.Flags().StringArray("set-string", nil, "set Helm string values (key=val, repeatable)")
+	scanCommand.Flags().StringArrayP("values", "f", nil, "values file (repeatable)")
 
-	rootCmd.AddCommand(scanCmd)
-	return rootCmd
+	rootCommand.AddCommand(scanCommand)
+	return rootCommand
 }
 
 func TestScanCommandParsesFlags(t *testing.T) {
@@ -50,26 +50,26 @@ func TestScanCommandParsesFlags(t *testing.T) {
 		gotValues             []string
 	)
 
-	rootCmd := buildTestRoot(func(cmd *cobra.Command, args []string) error {
-		gotChartRef = args[0]
-		gotMinConf, _ = cmd.Flags().GetString("min-confidence")
-		gotNoHelmDeps, _ = cmd.Flags().GetBool("no-helm-deps")
-		gotIncludeOptionalDep, _ = cmd.Flags().GetBool("include-optional-deps")
-		gotVerbose, _ = cmd.Flags().GetBool("verbose")
-		gotSet, _ = cmd.Flags().GetStringArray("set")
-		gotSetString, _ = cmd.Flags().GetStringArray("set-string")
-		gotValues, _ = cmd.Flags().GetStringArray("values")
+	rootCommand := buildTestRoot(func(command *cobra.Command, arguments []string) error {
+		gotChartRef = arguments[0]
+		gotMinConf, _ = command.Flags().GetString("min-confidence")
+		gotNoHelmDeps, _ = command.Flags().GetBool("no-helm-deps")
+		gotIncludeOptionalDep, _ = command.Flags().GetBool("include-optional-deps")
+		gotVerbose, _ = command.Flags().GetBool("verbose")
+		gotSet, _ = command.Flags().GetStringArray("set")
+		gotSetString, _ = command.Flags().GetStringArray("set-string")
+		gotValues, _ = command.Flags().GetStringArray("values")
 		return nil
 	})
 
-	rootCmd.SetArgs([]string{
+	rootCommand.SetArgs([]string{
 		"scan", "my-chart", "--min-confidence=high", "--no-helm-deps",
 		"--include-optional-deps", "-v",
 		"--set", "foo=bar", "--set-string", "baz=qux",
 		"-f", "values.yaml",
 	})
 
-	if err := rootCmd.Execute(); err != nil {
+	if err := rootCommand.Execute(); err != nil {
 		t.Fatalf("Execute() returned error: %v", err)
 	}
 
@@ -100,13 +100,13 @@ func TestScanCommandParsesFlags(t *testing.T) {
 }
 
 func TestRootHelpIncludesScan(t *testing.T) {
-	rootCmd := buildTestRoot(func(cmd *cobra.Command, args []string) error { return nil })
+	rootCommand := buildTestRoot(func(command *cobra.Command, arguments []string) error { return nil })
 
 	buf := &bytes.Buffer{}
-	rootCmd.SetOut(buf)
-	rootCmd.SetArgs([]string{"--help"})
+	rootCommand.SetOut(buf)
+	rootCommand.SetArgs([]string{"--help"})
 
-	if err := rootCmd.Execute(); err != nil {
+	if err := rootCommand.Execute(); err != nil {
 		t.Fatalf("Execute() returned error: %v", err)
 	}
 
@@ -118,19 +118,19 @@ func TestRootHelpIncludesScan(t *testing.T) {
 }
 
 // TestNewRootCommandWiresScanOptions verifies that the real CLI wiring
-// passes the expected options to scanFunc.
+// passes the expected options to scanFunction.
 func TestNewRootCommandWiresScanOptions(t *testing.T) {
-	old := scanFunc
-	defer func() { scanFunc = old }()
+	old := scanFunction
+	defer func() { scanFunction = old }()
 
 	var gotOptions scan.Options
-	scanFunc = func(opts scan.Options) (*scan.ScanResult, error) {
+	scanFunction = func(opts scan.Options) (*scan.ScanResult, error) {
 		gotOptions = opts
 		return &scan.ScanResult{}, nil
 	}
 
-	cmd := newRootCommand()
-	cmd.SetArgs([]string{
+	command := newRootCommand()
+	command.SetArgs([]string{
 		"scan", "my-chart",
 		"--min-confidence=high",
 		"--no-helm-deps",
@@ -141,7 +141,7 @@ func TestNewRootCommandWiresScanOptions(t *testing.T) {
 		"-f", "values.yaml",
 	})
 
-	if err := cmd.Execute(); err != nil {
+	if err := command.Execute(); err != nil {
 		t.Fatalf("Execute() returned error: %v", err)
 	}
 

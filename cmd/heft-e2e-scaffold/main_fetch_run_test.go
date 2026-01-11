@@ -11,7 +11,7 @@ import (
 )
 
 func TestFetchArtifactHubChartsUsesBaseURL(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/v1/packages/search" {
 			t.Fatalf("unexpected path: %s", r.URL.Path)
 		}
@@ -22,10 +22,10 @@ func TestFetchArtifactHubChartsUsesBaseURL(t *testing.T) {
 			Charts: []artifactHubChart{{Name: "test", NormalizedName: "test", Version: "1.0.0"}},
 		})
 	}))
-	defer ts.Close()
+	defer testServer.Close()
 
 	oldBase := artifactHubBaseURL
-	artifactHubBaseURL = ts.URL
+	artifactHubBaseURL = testServer.URL
 	defer func() { artifactHubBaseURL = oldBase }()
 
 	charts, err := fetchArtifactHubCharts(10, 0, "stars")
@@ -38,16 +38,16 @@ func TestFetchArtifactHubChartsUsesBaseURL(t *testing.T) {
 }
 
 func TestRunScaffoldsFromFakeArtifactHub(t *testing.T) {
-	repo := t.TempDir()
+	repository := t.TempDir()
 	// Minimal go.mod to satisfy repositoryRoot when run under this directory.
-	if err := os.WriteFile(filepath.Join(repo, "go.mod"), []byte("module example.com/heft-test"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(repository, "go.mod"), []byte("module example.com/heft-test"), 0o644); err != nil {
 		t.Fatalf("WriteFile go.mod: %v", err)
 	}
 
 	// Prepare fake heft binary that prints deterministic YAML.
-	tdir := t.TempDir()
-	fakeHeft := filepath.Join(tdir, "heft")
-	fakeSrc := filepath.Join(tdir, "main.go")
+	temporaryDirectory := t.TempDir()
+	fakeHeft := filepath.Join(temporaryDirectory, "heft")
+	fakeSrc := filepath.Join(temporaryDirectory, "main.go")
 	if err := os.WriteFile(fakeSrc, []byte(`package main
 import "fmt"
 func main() {
@@ -56,9 +56,9 @@ func main() {
 `), 0o644); err != nil {
 		t.Fatalf("write fake heft source: %v", err)
 	}
-	buildCmd := exec.Command("go", "build", "-o", fakeHeft, fakeSrc)
-	buildCmd.Env = os.Environ()
-	if out, err := buildCmd.CombinedOutput(); err != nil {
+	buildCommand := exec.Command("go", "build", "-o", fakeHeft, fakeSrc)
+	buildCommand.Env = os.Environ()
+	if out, err := buildCommand.CombinedOutput(); err != nil {
 		t.Fatalf("build fake heft: %v\n%s", err, string(out))
 	}
 
@@ -66,7 +66,7 @@ func main() {
 	t.Setenv("HEFT_BINARY", fakeHeft)
 
 	// Fake Artifact Hub server returning a single chart.
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(artifactHubSearchResponse{
 			Charts: []artifactHubChart{{
 				Name:           "testchart",
@@ -76,19 +76,19 @@ func main() {
 			}},
 		})
 	}))
-	defer ts.Close()
+	defer testServer.Close()
 
 	oldBase := artifactHubBaseURL
-	artifactHubBaseURL = ts.URL
+	artifactHubBaseURL = testServer.URL
 	defer func() { artifactHubBaseURL = oldBase }()
 
-	// Run from inside the temporary repo so repositoryRoot sees our go.mod.
-	oldWD, err := os.Getwd()
+	// Run from inside the temporary repository so repositoryRoot sees our go.mod.
+	oldWorkingDirectory, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Getwd: %v", err)
 	}
-	defer os.Chdir(oldWD)
-	if err := os.Chdir(repo); err != nil {
+	defer os.Chdir(oldWorkingDirectory)
+	if err := os.Chdir(repository); err != nil {
 		t.Fatalf("Chdir: %v", err)
 	}
 
@@ -96,7 +96,7 @@ func main() {
 		t.Fatalf("run error: %v", err)
 	}
 
-	chartsRoot := filepath.Join(repo, "internal", "system", "testdata", "charts")
+	chartsRoot := filepath.Join(repository, "internal", "system", "testdata", "charts")
 	if _, err := os.Stat(chartsRoot); err != nil {
 		t.Fatalf("expected charts root at %s: %v", chartsRoot, err)
 	}

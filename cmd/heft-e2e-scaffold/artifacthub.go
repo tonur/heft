@@ -28,9 +28,9 @@ var artifactHubBaseURL = "https://artifacthub.io"
 
 // fetchArtifactHubCharts queries Artifact Hub for helm charts with the
 // given pagination and sort order.
-// fetchArtifactHubChartsFunc is a variable to allow tests to stub the
+// fetchArtifactHubChartsFunction is a variable to allow tests to stub the
 // Artifact Hub search.
-var fetchArtifactHubChartsFunc = fetchArtifactHubCharts
+var fetchArtifactHubChartsFunction = fetchArtifactHubCharts
 
 func fetchArtifactHubCharts(limit, offset int, sort string) ([]artifactHubChart, error) {
 	url := fmt.Sprintf("%s/api/v1/packages/search?kind=0&limit=%d&offset=%d&sort=%s", strings.TrimRight(artifactHubBaseURL, "/"), limit, offset, sort)

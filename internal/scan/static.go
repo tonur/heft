@@ -81,13 +81,13 @@ func collectStaticImages(node any, file string, results *[]ImageFinding) {
 					File:       file,
 				})
 			}
-			if m, ok := imageValue.(map[string]any); ok {
-				repo, _ := m["repository"].(string)
-				tag, _ := m["tag"].(string)
-				if repo != "" && !strings.Contains(repo, "{{") {
-					name := repo
+			if imageProperties, ok := imageValue.(map[string]any); ok {
+				repository, _ := imageProperties["repository"].(string)
+				tag, _ := imageProperties["tag"].(string)
+				if repository != "" && !strings.Contains(repository, "{{") {
+					name := repository
 					if tag != "" && !strings.Contains(tag, "{{") {
-						name = fmt.Sprintf("%s:%s", repo, tag)
+						name = fmt.Sprintf("%s:%s", repository, tag)
 					}
 					*results = append(*results, ImageFinding{
 						Name:       name,

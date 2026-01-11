@@ -11,7 +11,7 @@ func TestSplitRepoAndTag(t *testing.T) {
 	cases := []struct {
 		name   string
 		input  string
-		repo   string
+		repository   string
 		hasTag bool
 	}{
 		{"noTag", "ghcr.io/external-secrets/external-secrets", "ghcr.io/external-secrets/external-secrets", false},
@@ -22,9 +22,9 @@ func TestSplitRepoAndTag(t *testing.T) {
 
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {
-			repo, hasTag := splitRepoAndTag(testCase.input)
-			if repo != testCase.repo || hasTag != testCase.hasTag {
-				t.Fatalf("splitRepoAndTag(%q) = (%q,%v), want (%q,%v)", testCase.input, repo, hasTag, testCase.repo, testCase.hasTag)
+			repository, hasTag := splitRepoAndTag(testCase.input)
+			if repository != testCase.repository || hasTag != testCase.hasTag {
+				t.Fatalf("splitRepoAndTag(%q) = (%q,%v), want (%q,%v)", testCase.input, repository, hasTag, testCase.repository, testCase.hasTag)
 			}
 		})
 	}
@@ -120,26 +120,26 @@ func TestCollectStaticImagesFromValuesYAML(t *testing.T) {
 }
 
 func TestDetectRegexSkipsTestsAndJunkTags(t *testing.T) {
-	dir := t.TempDir()
+	directory := t.TempDir()
 
 	// This file is under tests/ and should be ignored entirely.
-	testDir := filepath.Join(dir, "tests")
-	if err := os.Mkdir(testDir, 0o755); err != nil {
+	testDirectory := filepath.Join(directory, "tests")
+	if err := os.Mkdir(testDirectory, 0o755); err != nil {
 		t.Fatalf("failed to create tests dir: %v", err)
 	}
-	testFile := filepath.Join(testDir, "junk.yaml")
+	testFile := filepath.Join(testDirectory, "junk.yaml")
 	if err := os.WriteFile(testFile, []byte("image: io/custom/app:.\n"), 0o644); err != nil {
 		t.Fatalf("failed to write test junk file: %v", err)
 	}
 
 	// This file should be scanned, but the pattern ends with ":.", which
 	// our detector treats as junk and filters out.
-	goodFile := filepath.Join(dir, "values.yaml")
+	goodFile := filepath.Join(directory, "values.yaml")
 	if err := os.WriteFile(goodFile, []byte("image: example.com/foo/bar:.\n"), 0o644); err != nil {
 		t.Fatalf("failed to write values file: %v", err)
 	}
 
-	images, err := detectRegex(Options{ChartPath: dir})
+	images, err := detectRegex(Options{ChartPath: directory})
 	if err != nil {
 		t.Fatalf("detectRegex returned error: %v", err)
 	}
@@ -161,26 +161,26 @@ func TestScanWithBasicChartIntegration(t *testing.T) {
 	if len(images.Images) != 1 {
 		t.Fatalf("expected 1 image from basic chart, got %d", len(images.Images))
 	}
-	img := images.Images[0]
-	if img.Name != "example.com/basic/app:1.2.3" {
-		t.Fatalf("unexpected image name: %q", img.Name)
+	image := images.Images[0]
+	if image.Name != "example.com/basic/app:1.2.3" {
+		t.Fatalf("unexpected image name: %q", image.Name)
 	}
-	if img.Confidence != ConfidenceHigh || img.Source != SourceRendered {
-		t.Fatalf("expected high-confidence rendered-manifest, got %+v", img)
+	if image.Confidence != ConfidenceHigh || image.Source != SourceRendered {
+		t.Fatalf("expected high-confidence rendered-manifest, got %+v", image)
 	}
 }
 
 func TestScanMinConfidenceAndEmptyChart(t *testing.T) {
-	dir := t.TempDir()
+	directory := t.TempDir()
 
 	// Empty directory: no static/regex images.
-	_, err := Scan(Options{ChartPath: dir, MinConfidence: ConfidenceLow, HelmBin: "false"})
+	_, err := Scan(Options{ChartPath: directory, MinConfidence: ConfidenceLow, HelmBin: "false"})
 	if err == nil {
 		t.Fatalf("expected error for low confidence with no images, got nil")
 	}
 
 	// High min-confidence on same empty directory should also error.
-	_, err = Scan(Options{ChartPath: dir, MinConfidence: ConfidenceHigh, HelmBin: "false"})
+	_, err = Scan(Options{ChartPath: directory, MinConfidence: ConfidenceHigh, HelmBin: "false"})
 	if err == nil {
 		t.Fatalf("expected error for high confidence with no images, got nil")
 	}

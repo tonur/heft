@@ -8,10 +8,10 @@ import (
 // TestRunReturnsErrorWhenRepositoryRootFails exercises the early error
 // path where repositoryRootFunc returns an error.
 func TestRunReturnsErrorWhenRepositoryRootFails(t *testing.T) {
-	oldRepoRoot := repositoryRootFunc
-	defer func() { repositoryRootFunc = oldRepoRoot }()
+	oldRepositoryRoot := repositoryRootFunction
+	defer func() { repositoryRootFunction = oldRepositoryRoot }()
 
-	repositoryRootFunc = func() (string, error) {
+	repositoryRootFunction = func() (string, error) {
 		return "", errors.New("boom")
 	}
 
@@ -23,18 +23,18 @@ func TestRunReturnsErrorWhenRepositoryRootFails(t *testing.T) {
 // TestRunReturnsErrorWhenEnsureHeftBinaryFails covers the error path
 // where ensureHeftBinaryFunc returns an error.
 func TestRunReturnsErrorWhenEnsureHeftBinaryFails(t *testing.T) {
-	oldRepoRoot := repositoryRootFunc
-	oldEnsure := ensureHeftBinaryFunc
+	oldRepoRoot := repositoryRootFunction
+	oldEnsure := ensureHeftBinaryFunction
 	defer func() {
-		repositoryRootFunc = oldRepoRoot
-		ensureHeftBinaryFunc = oldEnsure
+		repositoryRootFunction = oldRepoRoot
+		ensureHeftBinaryFunction = oldEnsure
 	}()
 
-	repositoryRootFunc = func() (string, error) {
+	repositoryRootFunction = func() (string, error) {
 		return "/tmp/repo", nil
 	}
 
-	ensureHeftBinaryFunc = func(repoRoot string) (string, error) {
+	ensureHeftBinaryFunction = func(repoRoot string) (string, error) {
 		return "", errors.New("no heft")
 	}
 
@@ -46,24 +46,24 @@ func TestRunReturnsErrorWhenEnsureHeftBinaryFails(t *testing.T) {
 // TestRunReturnsErrorWhenFetchArtifactHubChartsFails covers the error
 // propagation when fetchArtifactHubChartsFunc returns an error.
 func TestRunReturnsErrorWhenFetchArtifactHubChartsFails(t *testing.T) {
-	oldRepoRoot := repositoryRootFunc
-	oldEnsure := ensureHeftBinaryFunc
-	oldFetch := fetchArtifactHubChartsFunc
+	oldRepositoryRoot := repositoryRootFunction
+	oldEnsure := ensureHeftBinaryFunction
+	oldFetch := fetchArtifactHubChartsFunction
 	defer func() {
-		repositoryRootFunc = oldRepoRoot
-		ensureHeftBinaryFunc = oldEnsure
-		fetchArtifactHubChartsFunc = oldFetch
+		repositoryRootFunction = oldRepositoryRoot
+		ensureHeftBinaryFunction = oldEnsure
+		fetchArtifactHubChartsFunction = oldFetch
 	}()
 
-	repositoryRootFunc = func() (string, error) {
+	repositoryRootFunction = func() (string, error) {
 		return "/tmp/repo", nil
 	}
 
-	ensureHeftBinaryFunc = func(repoRoot string) (string, error) {
+	ensureHeftBinaryFunction = func(repoRoot string) (string, error) {
 		return "/bin/heft", nil
 	}
 
-	fetchArtifactHubChartsFunc = func(limit, offset int, sort string) ([]artifactHubChart, error) {
+	fetchArtifactHubChartsFunction = func(limit, offset int, sort string) ([]artifactHubChart, error) {
 		return nil, errors.New("fetch failed")
 	}
 

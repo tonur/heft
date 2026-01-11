@@ -9,10 +9,10 @@ import (
 // TestWriteChartMetadataWriteError uses the writeFileFunc hook to
 // exercise the error path when writing the metadata file fails.
 func TestWriteChartMetadataWriteError(t *testing.T) {
-	oldWrite := writeFileFunc
-	defer func() { writeFileFunc = oldWrite }()
+	oldWrite := writeFileFunction
+	defer func() { writeFileFunction = oldWrite }()
 
-	writeFileFunc = func(filename string, data []byte, perm os.FileMode) error {
+	writeFileFunction = func(filename string, data []byte, perm os.FileMode) error {
 		return errors.New("disk full")
 	}
 

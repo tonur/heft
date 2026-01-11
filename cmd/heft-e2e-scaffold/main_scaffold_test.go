@@ -13,16 +13,16 @@ import (
 // deterministic YAML payload so we can verify the generated metadata and
 // command fixture from scaffoldChart.
 func TestScaffoldChartCreatesFixture(t *testing.T) {
-	tdir, err := os.MkdirTemp("", "heft-scaffold-")
+	temporaryDirectory, err := os.MkdirTemp("", "heft-scaffold-")
 	if err != nil {
 		t.Fatalf("MkdirTemp: %v", err)
 	}
-	defer os.RemoveAll(tdir)
+	defer os.RemoveAll(temporaryDirectory)
 
 	// Create a fake heft binary that prints a single high-confidence image.
-	fakeHeft := filepath.Join(tdir, "heft")
-	fakeSrc := filepath.Join(tdir, "main.go")
-	if err := os.WriteFile(fakeSrc, []byte(`package main
+	fakeHeft := filepath.Join(temporaryDirectory, "heft")
+	fakeSource := filepath.Join(temporaryDirectory, "main.go")
+	if err := os.WriteFile(fakeSource, []byte(`package main
 import "fmt"
 func main() {
 	fmt.Println("images:\n- name: alpine\n  confidence: high\n  source: rendered-manifest")
@@ -31,16 +31,16 @@ func main() {
 		t.Fatalf("write fake heft source: %v", err)
 	}
 
-	buildCmd := exec.Command("go", "build", "-o", fakeHeft, fakeSrc)
-	buildCmd.Env = os.Environ()
-	if out, err := buildCmd.CombinedOutput(); err != nil {
+	buildCommand := exec.Command("go", "build", "-o", fakeHeft, fakeSource)
+	buildCommand.Env = os.Environ()
+	if out, err := buildCommand.CombinedOutput(); err != nil {
 		t.Fatalf("build fake heft: %v\n%s", err, string(out))
 	}
 	if runtime.GOOS == "windows" {
 		fakeHeft += ".exe"
 	}
 
-	chartDir := filepath.Join(tdir, "chart")
+	chartDir := filepath.Join(temporaryDirectory, "chart")
 	metadataPath := filepath.Join(chartDir, "chart_metadata.yaml")
 
 	chart := &artifactHubChart{

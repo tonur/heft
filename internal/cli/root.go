@@ -10,12 +10,12 @@ import (
 	"github.com/tonur/heft/internal/scan"
 )
 
-// scanFunc is the function used by the CLI to run a scan.
+// scanFunction is the function used by the CLI to run a scan.
 // It is a variable to allow tests to inject a fake implementation.
-var scanFunc = scan.Scan
+var scanFunction = scan.Scan
 
 // newRootCommand constructs the root heft command with the scan subcommand
-// wired to call scanFunc.
+// wired to call scanFunction.
 func newRootCommand() *cobra.Command {
 	heftCommand := &cobra.Command{
 		Use:   "heft",
@@ -27,17 +27,17 @@ func newRootCommand() *cobra.Command {
 		Use:   "scan <chart-ref>",
 		Short: "Scan a Helm chart for container images",
 		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			chartRef := args[0]
+		RunE: func(command *cobra.Command, arguments []string) error {
+			chartRef := arguments[0]
 
-			minConfidenceString, _ := cmd.Flags().GetString("min-confidence")
-			noHelmDeps, _ := cmd.Flags().GetBool("no-helm-deps")
-			includeOptionalDeps, _ := cmd.Flags().GetBool("include-optional-deps")
-			verbose, _ := cmd.Flags().GetBool("verbose")
-			setVals, _ := cmd.Flags().GetStringArray("set")
-			setStringVals, _ := cmd.Flags().GetStringArray("set-string")
-			valuesFiles, _ := cmd.Flags().GetStringArray("values")
-			fValues, _ := cmd.Flags().GetStringArray("f")
+			minConfidenceString, _ := command.Flags().GetString("min-confidence")
+			noHelmDeps, _ := command.Flags().GetBool("no-helm-deps")
+			includeOptionalDeps, _ := command.Flags().GetBool("include-optional-deps")
+			verbose, _ := command.Flags().GetBool("verbose")
+			setVals, _ := command.Flags().GetStringArray("set")
+			setStringVals, _ := command.Flags().GetStringArray("set-string")
+			valuesFiles, _ := command.Flags().GetStringArray("values")
+			fValues, _ := command.Flags().GetStringArray("f")
 
 			// Combine -f and --values inputs.
 			valuesFiles = append(valuesFiles, fValues...)
@@ -79,7 +79,7 @@ func newRootCommand() *cobra.Command {
 				Verbose:             verbose,
 			}
 
-			result, err := scanFunc(options)
+			result, err := scanFunction(options)
 			if err != nil {
 				return err
 			}
@@ -105,21 +105,21 @@ func newRootCommand() *cobra.Command {
 	return heftCommand
 }
 
-// exitFunc is used by Execute to terminate the process. It is a
+// exitFunction is used by Execute to terminate the process. It is a
 // variable so tests can stub it and observe exit behavior.
-var exitFunc = os.Exit
+var exitFunction = os.Exit
 
 // executeCommand runs the provided command and returns any error.
 // It is a variable so tests can stub it.
-var executeCommand = func(cmd *cobra.Command) error {
-	return cmd.Execute()
+var executeCommand = func(command *cobra.Command) error {
+	return command.Execute()
 }
 
 // Execute is the entry point for the heft CLI.
 func Execute() {
-	cmd := newRootCommand()
-	if err := executeCommand(cmd); err != nil {
+	command := newRootCommand()
+	if err := executeCommand(command); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
-		exitFunc(1)
+		exitFunction(1)
 	}
 }
