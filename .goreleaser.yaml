@@ -72,3 +72,22 @@ release:
   github:
     owner: tonur
     name: heft
+
+brews:
+  - name: heft
+    repository:
+      owner: tonur
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    url_template: "https://github.com/tonur/heft/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    download_strategy: CurlDownloadStrategy
+    commit_author:
+      name: GoReleaser Bot
+      email: goreleaser@carlosbecker.com
+    directory: Formula
+    homepage: "https://github.com/tonur/heft"
+    description: "Tool to view container images needed by Helm, for use in SBOM or air-gapped environments"
+    license: "MIT"
+    skip_upload: false
+    test: |
+      system "#{bin}/heft version"
