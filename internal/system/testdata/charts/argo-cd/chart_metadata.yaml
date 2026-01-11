@@ -1,0 +1,4 @@
+name: argo-cd
+url: https://github.com/argoproj/argo-helm/releases/download/argo-cd-9.2.4/argo-cd-9.2.4.tgz
+version: 9.2.4
+source: artifacthub

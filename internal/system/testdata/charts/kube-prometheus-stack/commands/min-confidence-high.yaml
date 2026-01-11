@@ -1,0 +1,27 @@
+name: min-confidence-high
+arguments:
+    - scan
+    - ${CHART_URL}
+    - --min-confidence=high
+expectedImages:
+    - image: docker.io/bats/bats:v1.4.1
+      confidence: high
+      source: rendered-manifest
+    - image: docker.io/grafana/grafana:12.3.1
+      confidence: high
+      source: rendered-manifest
+    - image: ghcr.io/jkroepke/kube-webhook-certgen:1.7.4
+      confidence: high
+      source: rendered-manifest
+    - image: quay.io/kiwigrid/k8s-sidecar:2.2.1
+      confidence: high
+      source: rendered-manifest
+    - image: quay.io/prometheus-operator/prometheus-operator:v0.87.1
+      confidence: high
+      source: rendered-manifest
+    - image: quay.io/prometheus/node-exporter:v1.10.2
+      confidence: high
+      source: rendered-manifest
+    - image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.17.0
+      confidence: high
+      source: rendered-manifest

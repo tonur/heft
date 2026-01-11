@@ -1,0 +1,15 @@
+name: min-confidence-high
+arguments:
+    - scan
+    - ${CHART_URL}
+    - --min-confidence=high
+expectedImages:
+    - image: ecr-public.aws.com/docker/library/redis:8.2.2-alpine
+      confidence: high
+      source: rendered-manifest
+    - image: ghcr.io/dexidp/dex:v2.44.0
+      confidence: high
+      source: rendered-manifest
+    - image: quay.io/argoproj/argocd:v3.2.3
+      confidence: high
+      source: rendered-manifest

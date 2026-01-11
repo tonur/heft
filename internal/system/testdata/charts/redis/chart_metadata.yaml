@@ -1,0 +1,4 @@
+name: redis
+url: oci://registry-1.docker.io/bitnamicharts/redis:24.1.0
+version: 24.1.0
+source: artifacthub

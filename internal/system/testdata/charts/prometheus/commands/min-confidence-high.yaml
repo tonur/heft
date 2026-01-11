@@ -1,0 +1,24 @@
+name: min-confidence-high
+arguments:
+    - scan
+    - ${CHART_URL}
+    - --min-confidence=high
+expectedImages:
+    - image: quay.io/prometheus-operator/prometheus-config-reloader:v0.88.0
+      confidence: high
+      source: rendered-manifest
+    - image: quay.io/prometheus/alertmanager:v0.30.0
+      confidence: high
+      source: rendered-manifest
+    - image: quay.io/prometheus/node-exporter:v1.10.2
+      confidence: high
+      source: rendered-manifest
+    - image: quay.io/prometheus/prometheus:v3.9.1
+      confidence: high
+      source: rendered-manifest
+    - image: quay.io/prometheus/pushgateway:v1.11.2
+      confidence: high
+      source: rendered-manifest
+    - image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.17.0
+      confidence: high
+      source: rendered-manifest

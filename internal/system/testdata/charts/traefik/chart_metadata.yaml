@@ -1,0 +1,4 @@
+name: traefik
+url: https://traefik.github.io/charts/traefik/traefik-38.0.2.tgz
+version: 38.0.2
+source: artifacthub

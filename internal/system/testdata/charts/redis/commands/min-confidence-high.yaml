@@ -1,0 +1,9 @@
+name: min-confidence-high
+arguments:
+    - scan
+    - ${CHART_URL}
+    - --min-confidence=high
+expectedImages:
+    - image: registry-1.docker.io/bitnami/redis:latest
+      confidence: high
+      source: rendered-manifest

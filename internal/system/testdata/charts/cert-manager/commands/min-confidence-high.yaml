@@ -1,0 +1,18 @@
+name: min-confidence-high
+arguments:
+    - scan
+    - ${CHART_URL}
+    - --min-confidence=high
+expectedImages:
+    - image: quay.io/jetstack/cert-manager-cainjector:v1.19.2
+      confidence: high
+      source: rendered-manifest
+    - image: quay.io/jetstack/cert-manager-controller:v1.19.2
+      confidence: high
+      source: rendered-manifest
+    - image: quay.io/jetstack/cert-manager-startupapicheck:v1.19.2
+      confidence: high
+      source: rendered-manifest
+    - image: quay.io/jetstack/cert-manager-webhook:v1.19.2
+      confidence: high
+      source: rendered-manifest

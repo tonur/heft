@@ -1,0 +1,4 @@
+name: grafana
+url: https://github.com/grafana/helm-charts/releases/download/grafana-10.5.5/grafana-10.5.5.tgz
+version: 10.5.5
+source: artifacthub

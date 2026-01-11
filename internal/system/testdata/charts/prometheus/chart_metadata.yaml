@@ -1,0 +1,4 @@
+name: prometheus
+url: https://github.com/prometheus-community/helm-charts/releases/download/prometheus-28.3.0/prometheus-28.3.0.tgz
+version: 28.3.0
+source: artifacthub

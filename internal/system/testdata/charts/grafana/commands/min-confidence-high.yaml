@@ -1,0 +1,12 @@
+name: min-confidence-high
+arguments:
+    - scan
+    - ${CHART_URL}
+    - --min-confidence=high
+expectedImages:
+    - image: docker.io/bats/bats:v1.4.1
+      confidence: high
+      source: rendered-manifest
+    - image: docker.io/grafana/grafana:12.3.1
+      confidence: high
+      source: rendered-manifest

@@ -1,0 +1,9 @@
+name: min-confidence-high
+arguments:
+    - scan
+    - ${CHART_URL}
+    - --min-confidence=high
+expectedImages:
+    - image: docker.io/traefik:v3.6.6
+      confidence: high
+      source: rendered-manifest

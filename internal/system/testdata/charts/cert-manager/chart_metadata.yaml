@@ -1,0 +1,4 @@
+name: cert-manager
+url: https://charts.jetstack.io/charts/cert-manager-v1.19.2.tgz
+version: 1.19.2
+source: artifacthub

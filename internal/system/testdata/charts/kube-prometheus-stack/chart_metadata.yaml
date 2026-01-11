@@ -1,0 +1,4 @@
+name: kube-prometheus-stack
+url: https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-80.13.3/kube-prometheus-stack-80.13.3.tgz
+version: 80.13.3
+source: artifacthub
