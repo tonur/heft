@@ -7,6 +7,10 @@ import (
 	"path/filepath"
 )
 
+// repositoryRootFunc is a variable to allow tests to stub repository
+// discovery logic.
+var repositoryRootFunc = repositoryRoot
+
 // repositoryRoot walks up from the current working directory until it
 // finds a go.mod file, treating that directory as the repository root.
 func repositoryRoot() (string, error) {
@@ -27,6 +31,10 @@ func repositoryRoot() (string, error) {
 		dir = parent
 	}
 }
+
+// ensureHeftBinaryFunc is a variable to allow tests to stub heft binary
+// resolution.
+var ensureHeftBinaryFunc = ensureHeftBinary
 
 // ensureHeftBinary locates or builds a heft binary to use for
 // scaffolding. It prefers HEFT_BINARY, then an existing heft on PATH,

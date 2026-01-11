@@ -31,13 +31,13 @@ func loadDependencyConditions(chartPath string) []string {
 	if err := yaml.Unmarshal(data, &meta); err != nil {
 		return nil
 	}
-	var conds []string
+	var conditions []string
 	for _, d := range meta.Dependencies {
 		if d.Condition != "" {
-			conds = append(conds, d.Condition)
+			conditions = append(conditions, d.Condition)
 		}
 	}
-	return conds
+	return conditions
 }
 
 func dependencyNamesWithConditions(chartPath string) []string {
@@ -51,9 +51,9 @@ func dependencyNamesWithConditions(chartPath string) []string {
 		return nil
 	}
 	var names []string
-	for _, d := range meta.Dependencies {
-		if d.Condition != "" && d.Name != "" {
-			names = append(names, d.Name)
+	for _, dependency := range meta.Dependencies {
+		if dependency.Condition != "" && dependency.Name != "" {
+			names = append(names, dependency.Name)
 		}
 	}
 	return names
@@ -67,26 +67,26 @@ func detectRendered(options Options) ([]ImageFinding, error) {
 	}
 
 	template := func() ([]byte, error) {
-		args := []string{"template", "heft-scan"}
+		arguments := []string{"template", "heft-scan"}
 		// Preserve any user-specified Helm values flags.
-		args = append(args, options.ValuesFiles...)
-		args = append(args, options.Values...)
+		arguments = append(arguments, options.ValuesFiles...)
+		arguments = append(arguments, options.Values...)
 
 		// Treat ChartPath as the chart reference passed to helm template. This may be
 		// a directory, a .tgz archive, an HTTP(S) URL, or an OCI reference.
 		chartRef := options.ChartPath
-		args = append(args, chartRef)
+		arguments = append(arguments, chartRef)
 
 		if options.Verbose {
-			fmt.Fprintf(os.Stderr, "heft: detectRendered: helm %s %s\n", helm, strings.Join(args, " "))
+			fmt.Fprintf(os.Stderr, "heft: detectRendered: helm %s %s\n", helm, strings.Join(arguments, " "))
 		}
 
-		cmd := exec.Command(helm, args...)
+		command := exec.Command(helm, arguments...)
 		var stdout, stderr bytes.Buffer
-		cmd.Stdout = &stdout
-		cmd.Stderr = &stderr
+		command.Stdout = &stdout
+		command.Stderr = &stderr
 
-		if err := cmd.Run(); err != nil {
+		if err := command.Run(); err != nil {
 			if options.Verbose {
 				fmt.Fprintf(os.Stderr, "heft: detectRendered: helm error: %s\n", stderr.String())
 			}
@@ -119,46 +119,46 @@ func detectRendered(options Options) ([]ImageFinding, error) {
 		}
 	}
 
-	docs := bytes.Split(out, []byte("---"))
+	documents := bytes.Split(out, []byte("---"))
 	var images []ImageFinding
 
-	for _, doc := range docs {
-		if len(bytes.TrimSpace(doc)) == 0 {
+	for _, document := range documents {
+		if len(bytes.TrimSpace(document)) == 0 {
 			continue
 		}
 
-		var m map[string]any
-		if err := yaml.Unmarshal(doc, &m); err != nil {
+		var metadata map[string]any
+		if err := yaml.Unmarshal(document, &metadata); err != nil {
 			continue
 		}
 
-		kind, _ := m["kind"].(string)
+		kind, _ := metadata["kind"].(string)
 		if kind == "" {
 			continue
 		}
 
 		var podSpec any
-		spec, _ := m["spec"].(map[string]any)
+		spec, _ := metadata["spec"].(map[string]any)
 		switch kind {
 		case "Deployment", "StatefulSet", "DaemonSet", "Job", "CronJob", "ReplicaSet", "ReplicationController":
-			if tmpl, ok := spec["template"].(map[string]any); ok {
-				podSpec, _ = tmpl["spec"]
+			if template, ok := spec["template"].(map[string]any); ok {
+				podSpec, _ = template["spec"]
 			}
 		case "Pod":
 			podSpec = spec
 		}
 
-		ps, ok := podSpec.(map[string]any)
+		podSpecMap, ok := podSpec.(map[string]any)
 		if !ok {
 			continue
 		}
 
 		extractFromContainerList := func(list any) {
-			arr, ok := list.([]any)
+			array, ok := list.([]any)
 			if !ok {
 				return
 			}
-			for _, item := range arr {
+			for _, item := range array {
 				m, ok := item.(map[string]any)
 				if !ok {
 					continue
@@ -173,13 +173,13 @@ func detectRendered(options Options) ([]ImageFinding, error) {
 			}
 		}
 
-		if c, ok := ps["containers"]; ok {
+		if c, ok := podSpecMap["containers"]; ok {
 			extractFromContainerList(c)
 		}
-		if c, ok := ps["initContainers"]; ok {
+		if c, ok := podSpecMap["initContainers"]; ok {
 			extractFromContainerList(c)
 		}
-		if c, ok := ps["ephemeralContainers"]; ok {
+		if c, ok := podSpecMap["ephemeralContainers"]; ok {
 			extractFromContainerList(c)
 		}
 	}

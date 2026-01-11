@@ -17,6 +17,13 @@ func isRemoteChartRef(ref string) bool {
 	return strings.HasPrefix(ref, "http://") || strings.HasPrefix(ref, "https://") || strings.HasPrefix(ref, "oci://")
 }
 
+// helmPullCommand is a variable to allow tests to stub the helm pull
+// invocation used for OCI chart references.
+var helmPullCommand = func(ref, tmpDir string) *exec.Cmd {
+	helm := "helm"
+	return exec.Command(helm, "pull", ref, "--untar", "--untardir", tmpDir)
+}
+
 func fetchAndExtractChart(ref string) (string, error) {
 	tmpDir, err := os.MkdirTemp("", "heft-chart-*")
 	if err != nil {
@@ -38,8 +45,7 @@ func fetchAndExtractChart(ref string) (string, error) {
 	}
 
 	if strings.HasPrefix(ref, "oci://") {
-		helm := "helm"
-		cmd := exec.Command(helm, "pull", ref, "--untar", "--untardir", tmpDir)
+		cmd := helmPullCommand(ref, tmpDir)
 		cmd.Env = os.Environ()
 		var stderr bytes.Buffer
 		cmd.Stderr = &stderr

@@ -108,12 +108,15 @@ func scaffoldChart(chartDir, metadataPath string, chart *artifactHubChart, chart
 	return nil
 }
 
+// writeFileFunc is a variable to allow tests to stub file writes.
+var writeFileFunc = os.WriteFile
+
 func writeChartMetadata(metadataPath string, md *chartMetadata) error {
 	mdBytes, err := yaml.Marshal(md)
 	if err != nil {
 		return fmt.Errorf("marshal metadata: %w", err)
 	}
-	if err := os.WriteFile(metadataPath, mdBytes, 0o644); err != nil {
+	if err := writeFileFunc(metadataPath, mdBytes, 0o644); err != nil {
 		return fmt.Errorf("write metadata: %w", err)
 	}
 	return nil
@@ -179,6 +182,12 @@ func updateChartMetadataAndCheckDrift(chartDir, metadataPath string, chart *arti
 // runHeftScanForImages executes the heft binary against the given
 // chart URL and parses its YAML output into scanImage values.
 func runHeftScanForImages(heftPath, chartURL, minConfidence string) ([]scanImage, error) {
+	return runHeftScanForImagesFunc(heftPath, chartURL, minConfidence)
+}
+
+// runHeftScanForImagesFunc is a function variable to allow tests to
+// stub out the external heft invocation.
+var runHeftScanForImagesFunc = func(heftPath, chartURL, minConfidence string) ([]scanImage, error) {
 	tmpDir, err := os.MkdirTemp("", "heft-e2e-scan-")
 	if err != nil {
 		return nil, err

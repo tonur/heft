@@ -17,21 +17,24 @@ func main() {
 	update := flag.Bool("update", false, "update metadata for existing charts and warn on drift")
 	flag.Parse()
 
-	if err := run(*maxCharts, *minConfidence, *artifactHubSort, *update); err != nil {
+	if err := runFunc(*maxCharts, *minConfidence, *artifactHubSort, *update); err != nil {
 		fmt.Fprintf(os.Stderr, "heft-e2e-scaffold error: %v\n", err)
 		exitFunc(1)
 	}
 }
 
+// runFunc is a function variable to allow tests to stub run.
+var runFunc = run
+
 // run orchestrates fetching charts from Artifact Hub and scaffolding
 // test fixtures for each chart.
 func run(maxCharts int, minConfidence, sort string, update bool) error {
-	repositoryRoot, err := repositoryRoot()
+	repositoryRoot, err := repositoryRootFunc()
 	if err != nil {
 		return err
 	}
 
-	heftPath, err := ensureHeftBinary(repositoryRoot)
+	heftPath, err := ensureHeftBinaryFunc(repositoryRoot)
 	if err != nil {
 		return fmt.Errorf("ensure heft binary: %w", err)
 	}
@@ -48,7 +51,7 @@ func run(maxCharts int, minConfidence, sort string, update bool) error {
 	pageLimit := 60
 
 	for newCharts < maxCharts || update {
-		charts, err := fetchArtifactHubCharts(pageLimit, offset, sort)
+		charts, err := fetchArtifactHubChartsFunc(pageLimit, offset, sort)
 		if err != nil {
 			return fmt.Errorf("fetch Artifact Hub charts: %w", err)
 		}
