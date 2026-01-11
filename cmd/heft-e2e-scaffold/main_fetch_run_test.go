@@ -92,7 +92,7 @@ func main() {
 		t.Fatalf("Chdir: %v", err)
 	}
 
-	if err := run(1, "high", "stars"); err != nil {
+	if err := run(1, "high", "stars", false); err != nil {
 		t.Fatalf("run error: %v", err)
 	}
 

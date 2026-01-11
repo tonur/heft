@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -82,12 +83,8 @@ func scaffoldChart(chartDir, metadataPath string, chart *artifactHubChart, chart
 		Source:  "artifacthub",
 	}
 
-	mdBytes, err := yaml.Marshal(&md)
-	if err != nil {
-		return fmt.Errorf("marshal metadata: %w", err)
-	}
-	if err := os.WriteFile(metadataPath, mdBytes, 0o644); err != nil {
-		return fmt.Errorf("write metadata: %w", err)
+	if err := writeChartMetadata(metadataPath, &md); err != nil {
+		return err
 	}
 
 	images, err := runHeftScanForImages(heftPath, chartURL, minConfidence)
@@ -103,7 +100,27 @@ func scaffoldChart(chartDir, metadataPath string, chart *artifactHubChart, chart
 		ExpectedImages: expected,
 	}
 
-	fixtureBytes, err := yaml.Marshal(&fixture)
+	if err := writeCommandFixture(chartDir, &fixture); err != nil {
+		return err
+	}
+
+	fmt.Printf("Scaffolded chart %s (%s) -> %s\n", md.Name, md.Version, chartDir)
+	return nil
+}
+
+func writeChartMetadata(metadataPath string, md *chartMetadata) error {
+	mdBytes, err := yaml.Marshal(md)
+	if err != nil {
+		return fmt.Errorf("marshal metadata: %w", err)
+	}
+	if err := os.WriteFile(metadataPath, mdBytes, 0o644); err != nil {
+		return fmt.Errorf("write metadata: %w", err)
+	}
+	return nil
+}
+
+func writeCommandFixture(chartDir string, fixture *commandFixture) error {
+	fixtureBytes, err := yaml.Marshal(fixture)
 	if err != nil {
 		return fmt.Errorf("marshal command fixture: %w", err)
 	}
@@ -112,8 +129,50 @@ func scaffoldChart(chartDir, metadataPath string, chart *artifactHubChart, chart
 	if err := os.WriteFile(fixturePath, fixtureBytes, 0o644); err != nil {
 		return fmt.Errorf("write command fixture: %w", err)
 	}
+	return nil
+}
 
-	fmt.Printf("Scaffolded chart %s (%s) -> %s\n", md.Name, md.Version, chartDir)
+func updateChartMetadataAndCheckDrift(chartDir, metadataPath string, chart *artifactHubChart, chartURL, heftPath string) error {
+	md := chartMetadata{
+		Name:    firstNonEmpty(chart.NormalizedName, chart.Name),
+		URL:     chartURL,
+		Version: chart.Version,
+		Source:  "artifacthub",
+	}
+
+	if err := writeChartMetadata(metadataPath, &md); err != nil {
+		return err
+	}
+
+	images, err := runHeftScanForImages(heftPath, chartURL, "high")
+	if err != nil {
+		return fmt.Errorf("heft scan: %w", err)
+	}
+
+	expected := selectExpectedImages(images)
+
+	newFixture := commandFixture{
+		Name:           "min-confidence-high",
+		Arguments:      []string{"scan", "${CHART_URL}", "--min-confidence=high"},
+		ExpectedImages: expected,
+	}
+
+	existingPath := filepath.Join(chartDir, "commands", newFixture.Name+".yaml")
+	data, err := os.ReadFile(existingPath)
+	if err != nil {
+		// If there is no existing fixture, nothing to compare.
+		return nil
+	}
+
+	var existingFixture commandFixture
+	if err := yaml.Unmarshal(data, &existingFixture); err != nil {
+		return fmt.Errorf("parse existing command fixture: %w", err)
+	}
+
+	if !reflect.DeepEqual(existingFixture, newFixture) {
+		fmt.Fprintf(os.Stderr, "Warning: drift detected for chart %s (%s) in %s\n", md.Name, md.Version, existingPath)
+	}
+
 	return nil
 }
 

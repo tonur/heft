@@ -109,6 +109,16 @@ go build ./cmd/heft
 
 - Helm 3 on `PATH` for rendered-manifest detection and end-to-end tests.
 
+## Testing popular charts
+A bunch of popular Helm charts are available under `internal/scan/testdata/popular-charts/` for testing and benchmarking purposes.
+The heft-e2e-scaffold tool can be used to download and update these charts.
+Run the tests like so:
+
+```bash
+go run ./cmd/heft-e2e-scaffold --update  # refresh metadata for existing charts and warn if expected images drift
+go test ./... -tags=e2e  # download charts and test the output placed under internal/system/testdata/charts
+```
+
 ## Implementation notes
 
 `heft` downloads remote charts when needed, runs Helm to render manifests, and then combines several detection strategies to find container images. It de-duplicates results and lets you filter them by confidence level using `--min-confidence`.
