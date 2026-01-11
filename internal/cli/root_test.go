@@ -161,3 +161,53 @@ func TestNewRootCommandWiresScanOptions(t *testing.T) {
 		t.Fatalf("expected Verbose=true")
 	}
 }
+
+func TestScanRepeatableFlags(t *testing.T) {
+	var (
+		gotSet       []string
+		gotSetString []string
+		gotValues    []string
+	)
+
+	rootCommand := buildTestRoot(func(command *cobra.Command, arguments []string) error {
+		var err error
+		gotSet, err = command.Flags().GetStringArray("set")
+		if err != nil {
+			return err
+		}
+		gotSetString, err = command.Flags().GetStringArray("set-string")
+		if err != nil {
+			return err
+		}
+		gotValues, err = command.Flags().GetStringArray("values")
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	rootCommand.SetArgs([]string{
+		"scan", "chart-ref",
+		"--set", "foo=bar",
+		"--set", "baz=qux",
+		"--set-string", "s1=v1",
+		"--set-string", "s2=v2",
+		"-f", "values1.yaml",
+		"--values", "values2.yaml",
+		"-f", "values3.yaml",
+	})
+
+	if err := rootCommand.Execute(); err != nil {
+		t.Fatalf("Execute() returned error: %v", err)
+	}
+
+	if len(gotSet) != 2 || gotSet[0] != "foo=bar" || gotSet[1] != "baz=qux" {
+		t.Fatalf("expected set to contain both values in order, got %v", gotSet)
+	}
+	if len(gotSetString) != 2 || gotSetString[0] != "s1=v1" || gotSetString[1] != "s2=v2" {
+		t.Fatalf("expected set-string to contain both values in order, got %v", gotSetString)
+	}
+	if len(gotValues) != 3 || gotValues[0] != "values1.yaml" || gotValues[1] != "values2.yaml" || gotValues[2] != "values3.yaml" {
+		t.Fatalf("expected values to contain all files in order, got %v", gotValues)
+	}
+}
