@@ -111,3 +111,61 @@ func TestUpdateChartMetadataAndCheckDrift_NoExistingFixture(t *testing.T) {
 		t.Fatalf("metadata does not contain updated version: %s", string(data))
 	}
 }
+
+func TestWriteChartMetadataWritesYAML(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "chart_metadata.yaml")
+
+	metadata := &chartMetadata{Name: "chart", URL: "https://example.com", Version: "1.0.0", Source: "artifacthub"}
+	if err := writeChartMetadata(path, metadata); err != nil {
+		t.Fatalf("writeChartMetadata returned error: %v", err)
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("reading metadata file failed: %v", err)
+	}
+
+	var decoded chartMetadata
+	if err := yaml.Unmarshal(data, &decoded); err != nil {
+		t.Fatalf("failed to unmarshal metadata YAML: %v", err)
+	}
+	if decoded.Name != metadata.Name || decoded.URL != metadata.URL || decoded.Version != metadata.Version || decoded.Source != metadata.Source {
+		t.Fatalf("decoded metadata %+v does not match original %+v", decoded, *metadata)
+	}
+}
+
+func TestWriteCommandFixtureWritesYAML(t *testing.T) {
+	dir := t.TempDir()
+	fixture := &commandFixture{
+		Name:      "min-confidence-high",
+		Arguments: []string{"scan", "${CHART_URL}", "--min-confidence=high"},
+		ExpectedImages: []expectedImage{
+			{Image: "nginx:1.0", Confidence: "high", Source: "static"},
+		},
+	}
+
+	// In production, scaffoldChart creates the commands directory before
+	// calling writeCommandFixture. Mirror that here.
+	if err := os.MkdirAll(filepath.Join(dir, "commands"), 0o755); err != nil {
+		t.Fatalf("mkdir commands: %v", err)
+	}
+
+	if err := writeCommandFixture(dir, fixture); err != nil {
+		t.Fatalf("writeCommandFixture returned error: %v", err)
+	}
+
+	path := filepath.Join(dir, "commands", fixture.Name+".yaml")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("reading command fixture failed: %v", err)
+	}
+
+	var decoded commandFixture
+	if err := yaml.Unmarshal(data, &decoded); err != nil {
+		t.Fatalf("failed to unmarshal command fixture YAML: %v", err)
+	}
+	if decoded.Name != fixture.Name || len(decoded.Arguments) != len(fixture.Arguments) || len(decoded.ExpectedImages) != len(fixture.ExpectedImages) {
+		t.Fatalf("decoded fixture %+v does not match original %+v", decoded, *fixture)
+	}
+}

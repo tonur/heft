@@ -21,12 +21,6 @@ type scanOutput struct {
 	Images []scanImage `yaml:"images"`
 }
 
-type expectedImage struct {
-	Image      string `yaml:"image"`
-	Confidence string `yaml:"confidence"`
-	Source     string `yaml:"source"`
-}
-
 type chartMetadata struct {
 	Name    string `yaml:"name"`
 	URL     string `yaml:"url"`
@@ -38,6 +32,12 @@ type commandFixture struct {
 	Name           string          `yaml:"name"`
 	Arguments      []string        `yaml:"arguments"`
 	ExpectedImages []expectedImage `yaml:"expectedImages"`
+}
+
+type expectedImage struct {
+	Image      string `yaml:"image"`
+	Confidence string `yaml:"confidence"`
+	Source     string `yaml:"source"`
 }
 
 func selectExpectedImages(images []scanImage) []expectedImage {
@@ -182,13 +182,7 @@ func updateChartMetadataAndCheckDrift(chartDir, metadataPath string, chart *arti
 // runHeftScanForImages executes the heft binary against the given
 // chart URL and parses its YAML output into scanImage values.
 func runHeftScanForImages(heftPath, chartURL, minConfidence string) ([]scanImage, error) {
-	return runHeftScanForImagesFunction(heftPath, chartURL, minConfidence)
-}
-
-// runHeftScanForImagesFunction is a function variable to allow tests to
-// stub out the external heft invocation.
-var runHeftScanForImagesFunction = func(heftPath, chartURL, minConfidence string) ([]scanImage, error) {
-	tmpDir, err := os.MkdirTemp("", "heft-e2e-scan-")
+	tmpDir, err := os.MkdirTemp("", "scan-")
 	if err != nil {
 		return nil, err
 	}
@@ -215,10 +209,6 @@ var runHeftScanForImagesFunction = func(heftPath, chartURL, minConfidence string
 // resolveChartURL derives a fetchable URL or OCI reference for the
 // given Artifact Hub chart.
 func resolveChartURL(chart artifactHubChart) (string, error) {
-	if strings.TrimSpace(chart.ContentURL) != "" {
-		return strings.TrimSpace(chart.ContentURL), nil
-	}
-
 	repositoryURL := strings.TrimSpace(chart.Repository.URL)
 	if repositoryURL == "" {
 		return "", fmt.Errorf("repository URL missing")
@@ -228,13 +218,6 @@ func resolveChartURL(chart artifactHubChart) (string, error) {
 	case 0: // Helm repository
 		return resolveFromHelmIndex(repositoryURL, firstNonEmpty(chart.NormalizedName, chart.Name), chart.Version)
 	default:
-		if strings.HasPrefix(repositoryURL, "oci://") || strings.Contains(repositoryURL, "ghcr.io/") || strings.Contains(repositoryURL, "registry") {
-			URL, err := ociURLFromRepository(repositoryURL, firstNonEmpty(chart.NormalizedName, chart.Name))
-			if err != nil {
-				return "", err
-			}
-			return URL, nil
-		}
 		return "", fmt.Errorf("unsupported repository kind %d and cannot infer oci ref", chart.Repository.Kind)
 	}
 }

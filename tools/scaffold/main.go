@@ -41,8 +41,8 @@ func run(maxCharts int, minConfidence, sort string, update bool) error {
 
 	fmt.Printf("Using heft binary at %s\n", heftPath)
 
-	chartsRoot := filepath.Join(repositoryRoot, "internal", "system", "testdata", "charts")
-	if err := os.MkdirAll(chartsRoot, 0o755); err != nil {
+	testcasesRoot := filepath.Join(repositoryRoot, "testcases")
+	if err := os.MkdirAll(testcasesRoot, 0o755); err != nil {
 		return fmt.Errorf("create chartsRoot: %w", err)
 	}
 
@@ -68,17 +68,18 @@ func run(maxCharts int, minConfidence, sort string, update bool) error {
 				continue
 			}
 
-			chartDir := filepath.Join(chartsRoot, name)
+			chartDir := filepath.Join(testcasesRoot, name)
 			metadataPath := filepath.Join(chartDir, "chart_metadata.yaml")
+
+			chartURL, err := resolveChartURL(chart)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Skipping %s: cannot resolve chart ref: %v\n", name, err)
+				continue
+			}
+
 			if _, err := os.Stat(metadataPath); err == nil {
 				if !update {
 					// already scaffolded in normal mode
-					continue
-				}
-
-				chartURL, err := resolveChartURL(chart)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Skipping %s: cannot resolve chart ref: %v\n", name, err)
 					continue
 				}
 
@@ -89,12 +90,6 @@ func run(maxCharts int, minConfidence, sort string, update bool) error {
 			}
 
 			if newCharts >= maxCharts {
-				continue
-			}
-
-			chartURL, err := resolveChartURL(chart)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Skipping %s: cannot resolve chart ref: %v\n", name, err)
 				continue
 			}
 

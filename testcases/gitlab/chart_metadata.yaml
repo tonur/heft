@@ -1,0 +1,4 @@
+name: gitlab
+url: https://gitlab-charts.s3.amazonaws.com/gitlab-9.7.1.tgz
+version: 9.7.1
+source: artifacthub

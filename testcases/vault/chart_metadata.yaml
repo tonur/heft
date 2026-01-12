@@ -1,0 +1,4 @@
+name: vault
+url: https://helm.releases.hashicorp.com/vault-0.31.0.tgz
+version: 0.31.0
+source: artifacthub

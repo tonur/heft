@@ -36,23 +36,17 @@ func repositoryRoot() (string, error) {
 // resolution.
 var ensureHeftBinaryFunction = ensureHeftBinary
 
-// ensureHeftBinary locates or builds a heft binary to use for
-// scaffolding. It prefers HEFT_BINARY, then an existing heft on PATH,
-// and finally builds a fresh binary with `go build ./cmd/heft`.
+// ensureHeftBinary builds a fresh binary with `go build ./cmd/heft` if none exists.
 func ensureHeftBinary(repoRoot string) (string, error) {
 	if p := os.Getenv("HEFT_BINARY"); p != "" {
 		return p, nil
 	}
 
-	if p, err := exec.LookPath("heft"); err == nil {
-		return p, nil
-	}
-
-	tmpDir, err := os.MkdirTemp("", "heft-e2e-scaffold-")
+	temporaryDirectory, err := os.MkdirTemp("", "heft-bin-")
 	if err != nil {
 		return "", err
 	}
-	binPath := filepath.Join(tmpDir, "heft")
+	binPath := filepath.Join(temporaryDirectory, "heft")
 
 	command := exec.Command("go", "build", "-o", binPath, "./cmd/heft")
 	command.Dir = repoRoot

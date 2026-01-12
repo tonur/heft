@@ -1,0 +1,9 @@
+name: min-confidence-high
+arguments:
+    - scan
+    - ${CHART_URL}
+    - --min-confidence=high
+expectedImages:
+    - image: registry.k8s.io/metrics-server/metrics-server:v0.8.0
+      confidence: high
+      source: rendered-manifest

@@ -5,12 +5,29 @@ package system
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"gopkg.in/yaml.v3"
 )
+
+type expectedImage struct {
+	Image      string
+	Confidence string
+	Source     string
+}
+
+type scanImage struct {
+	Name       string `yaml:"name"`
+	Confidence string `yaml:"confidence"`
+	Source     string `yaml:"source"`
+}
+
+type scanOutput struct {
+	Images []scanImage `yaml:"images"`
+}
 
 type chartFixture struct {
 	Name string `yaml:"name"`
@@ -21,6 +38,55 @@ type commandFixture struct {
 	Name           string          `yaml:"name"`
 	Arguments      []string        `yaml:"arguments"`
 	ExpectedImages []expectedImage `yaml:"expectedImages"`
+}
+
+func buildHeftBinary(t *testing.T) string {
+	t.Helper()
+
+	// Ensure helm is available since heft relies on it.
+	if _, err := exec.LookPath("helm"); err != nil {
+		t.Skip("helm not available in PATH; skipping e2e test")
+	}
+
+	temporaryDirectory := t.TempDir()
+	binaryPath := filepath.Join(temporaryDirectory, "heft")
+
+	repositoryRoot := repositoryRootDirectory(t)
+
+	build := exec.Command("go", "build", "-o", binaryPath, "./cmd/heft")
+	build.Env = os.Environ()
+	build.Dir = repositoryRoot
+	if out, err := build.CombinedOutput(); err != nil {
+		t.Fatalf("failed to build heft: %v\n%s", err, out)
+	}
+
+	return binaryPath
+}
+
+func repositoryRootDirectory(t *testing.T) string {
+	t.Helper()
+
+	repositoryRoot, err := filepath.Abs(filepath.Join(".."))
+	if err != nil {
+		t.Fatalf("failed to resolve repository root: %v", err)
+	}
+	return repositoryRoot
+}
+
+func runHeftScan(t *testing.T, binPath string, arguments ...string) []byte {
+	t.Helper()
+
+	temporaryDir := t.TempDir()
+	command := exec.Command(binPath, arguments...)
+	command.Env = os.Environ()
+	command.Dir = temporaryDir
+
+	out, err := command.CombinedOutput()
+	if err != nil {
+		t.Fatalf("heft scan failed: %v\noutput:\n%s", err, out)
+	}
+
+	return out
 }
 
 func loadChartFixture(dir string) (*chartFixture, error) {
@@ -107,34 +173,6 @@ func runChartCommands(t *testing.T, binPath string, chart *chartFixture, command
 					t.Fatalf("expected image not found for %s/%s: image=%q confidence=%q source=%q\nparsed=%+v", chart.Name, name, expected.Image, expected.Confidence, expected.Source, parsed)
 				}
 			}
-		})
-	}
-}
-
-func TestHeftScanChartsFromFixtures(t *testing.T) {
-	binPath := buildHeftBinary(t)
-	repositoryRoot := repositoryRootDirectory(t)
-	chartsRoot := filepath.Join(repositoryRoot, "internal", "system", "testdata", "charts")
-
-	entries, err := os.ReadDir(chartsRoot)
-	if err != nil {
-		t.Fatalf("failed to read charts testdata dir: %v", err)
-	}
-
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
-		}
-		chartDirectory := filepath.Join(chartsRoot, entry.Name())
-
-		chart, err := loadChartFixture(chartDirectory)
-		if err != nil {
-			t.Fatalf("failed to load chart fixture from %s: %v", chartDirectory, err)
-		}
-
-		commandsDirectory := filepath.Join(chartDirectory, "commands")
-		t.Run(chart.Name, func(t *testing.T) {
-			runChartCommands(t, binPath, chart, commandsDirectory)
 		})
 	}
 }

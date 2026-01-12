@@ -1,0 +1,4 @@
+name: loki
+url: https://github.com/grafana/helm-charts/releases/download/helm-loki-6.49.0/loki-6.49.0.tgz
+version: 6.49.0
+source: artifacthub

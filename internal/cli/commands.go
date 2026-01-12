@@ -14,6 +14,15 @@ import (
 // It is a variable to allow tests to inject a fake implementation.
 var scanFunction = scan.Scan
 
+// Execute is the entry point for the heft CLI.
+func Execute() {
+	command := newRootCommand()
+	if err := executeCommand(command); err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		exitFunction(1)
+	}
+}
+
 // newRootCommand constructs the root heft command with the scan subcommand
 // wired to call scanFunction.
 func newRootCommand() *cobra.Command {
@@ -113,13 +122,4 @@ var exitFunction = os.Exit
 // It is a variable so tests can stub it.
 var executeCommand = func(command *cobra.Command) error {
 	return command.Execute()
-}
-
-// Execute is the entry point for the heft CLI.
-func Execute() {
-	command := newRootCommand()
-	if err := executeCommand(command); err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
-		exitFunction(1)
-	}
 }
